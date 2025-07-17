@@ -17,10 +17,12 @@ CREATE TABLE IF NOT EXISTS contadores (
 """)
 conn.commit()
 
-def criar_contador(cnpj, razao_social, nome_fantasia, municipio, contador, tel_contador):
+def criar_contador(dados):
     """
     Insere um novo registro de contador.
+    Aceita uma lista com os dados: [cnpj, razao_social, nome_fantasia, municipio, contador, tel_contador]
     """
+    cnpj, razao_social, nome_fantasia, municipio, contador, tel_contador = dados
     cursor.execute("""
         INSERT INTO contadores
           (cnpj, razao_social, nome_fantasia, municipio, contador, tel_contador)
@@ -72,3 +74,24 @@ def atualizar_contador(cnpj, *, razao_social=None, nome_fantasia=None,
     sql = f"UPDATE contadores SET {', '.join(campos)} WHERE cnpj = ?"
     cursor.execute(sql, valores)
     conn.commit()
+
+
+def buscar_todos_contadores():
+    """
+    Retorna todos os registros de contadores do banco de dados.
+    """
+    cursor.execute("SELECT * FROM contadores")
+    return cursor.fetchall()
+
+def ver_dados():
+    lista = []
+    with conn:
+        cur =conn.cursor()
+        cur.execute('SELECT * FROM contadores')
+        linha = cur.fetchall()
+
+        for i in linha:
+            lista.append(i)
+    return lista
+
+print()

@@ -1,3 +1,4 @@
+import sqlite3
 from tkinter.ttk import *
 from tkinter import *
 from tkinter import ttk
@@ -50,48 +51,9 @@ app_lg = ImageTk.PhotoImage(app_lg)
 app_logo = Label(frame_logo, image=app_lg, text="Cadastro de contadores", width=850, compound=LEFT, relief=RAISED, anchor=NW, font=('Ivy 20 bold'), bg= co2, fg=co1)
 app_logo.place(x=0, y=0)
 
-#---- cadastro contador
+#---- cadastro 
 
-#------------------------------------------------------
-
-def control(i):
-    if i == 'cadastro':
-        for widget in frame_detalhes.winfo_children():
-            widget.destroy()
-
-        for widget in frame_tabela.winfo_children():
-            widget.destroy()
-
-        contadores()    
- 
-
-    if i == 'salvar':
-        for widget in frame_detalhes.winfo_children():
-            widget.destroy()
-
-        for widget in frame_tabela.winfo_children():
-            widget.destroy()
-
-        salvar()    
-    
-
-# ------botoes
-
-app_image_cadastro = Image.open('add.png')
-app_image_cadastro = app_image_cadastro.resize((18,18))
-app_image_cadastro = ImageTk.PhotoImage(app_image_cadastro)
-app_cadastro = Button(frame_dados, command=lambda:control('cadastro'), image=app_image_cadastro, text="Adicionar", width=100, compound=LEFT,  overrelief=RIDGE, font=('Ivy 11'), bg= co1, fg=co0)
-app_cadastro.place(x=10, y=30)
-
-add_image_salvar = Image.open('salvar.png') 
-add_image_salvar = add_image_salvar.resize((18,18))
-add_image_salvar = ImageTk.PhotoImage(add_image_salvar)
-app_salvar = Button(frame_dados, command=lambda:control('salvar'), image=add_image_salvar, text="Salvar", width=100, compound=LEFT,  overrelief=RIDGE, font=('Ivy 11'), bg= co1, fg=co0)
-app_salvar.place(x=150, y=30)
-#-------------------------------------------------------------------
-
-def contadores():
-    #print('Contadores')
+def cadastro():
     frame_tabela_contadores = Frame(frame_tabela, width=830, height=200, bg=co5)
     frame_tabela_contadores.grid(row=0, column=0, pady=0, padx=0, sticky=NSEW)
 
@@ -125,43 +87,7 @@ def contadores():
     e_tel_contador = Entry(frame_detalhes, width=35, justify='left', relief='solid')
     e_tel_contador.place(x=323, y=160)
 
-    botao_carregar = Button(frame_detalhes, command=novo_cadastro, anchor=CENTER, text='Salvar'.upper(), width=10, overrelief=RIDGE, font=('Ivy 7 bold'), bg=co3, fg=co1)
-    botao_carregar.place(x=7, y=200)
 
-    botao_deletar = Button(frame_detalhes, anchor=CENTER, text='Deletar'.upper(), width=10, overrelief=RIDGE, font=('Ivy 7 bold'), bg=co4, fg=co1)
-    botao_deletar.place(x=87, y=200)
-
-    botao_atualizar = Button(frame_detalhes, anchor=CENTER, text='Atualizar'.upper(), width=10, overrelief=RIDGE, font=('Ivy 7 bold'), bg=co2, fg=co1)
-    botao_atualizar.place(x=167, y=200)
-
-    #função novo cadastro
-    def novo_cadastro():
-        cnpj = e_cnpj.get()
-        razao_social = e_empresa.get()
-        nome_fantasia = e_nome.get()
-        municipio = e_municipio.get()
-        contador = e_contador.get()
-        tel_contador = e_tel_contador.get()
-        
-        lista = [cnpj, razao_social, nome_fantasia, municipio, contador, tel_contador]
-
-        for i in lista:
-            if i == "":
-                messagebox.showerror('Error', 'Preencha todos os campos')
-                return
-            
-        criar_contador(lista)
-
-        messagebox.showinfo('Sucesso' , 'Os dados foram enseridos com sucesso')
-
-        e_cnpj.delete(0,END)
-        e_empresa.delete(0,END)
-        e_nome.delete(0,END)
-        e_municipio.delete(0,END)
-        e_contador.delete(0,END)
-        e_tel_contador.delete(0,END)
-
-        mostrar_dados()
 # tabela dados
 
     def mostrar_dados():
@@ -169,7 +95,7 @@ def contadores():
         app_nome.grid(row=0, column=0, padx=5, pady=5, sticky=W)
 
         list_header = ['CNPJ', 'Razão social', 'Nome fantasia', 'Municipio', 'Contador', 'Telefone contador']
-        df_list = []
+        df_list = ver_dados()
 
         global tree_dados
 
@@ -198,13 +124,95 @@ def contadores():
         for item in df_list:
             tree_dados.insert('', 'end', values=item)
 
+        #função novo cadastro
+
+    def novo_cadastro():
+        cnpj = e_cnpj.get()
+        razao_social = e_empresa.get()
+        nome_fantasia = e_nome.get()
+        municipio = e_municipio.get()
+        contador = e_contador.get()
+        tel_contador = e_tel_contador.get()
+        
+        lista = [cnpj, razao_social, nome_fantasia, municipio, contador, tel_contador]
+
+        for i in lista:
+            if i == "":
+                messagebox.showerror('Error', 'Preencha todos os campos')
+                return
+            
+        criar_contador(lista)
+
+        messagebox.showinfo('Sucesso' , 'Os dados foram enseridos com sucesso')
+
+        e_cnpj.delete(0,END)
+        e_empresa.delete(0,END)
+        e_nome.delete(0,END)
+        e_municipio.delete(0,END)
+        e_contador.delete(0,END)
+        e_tel_contador.delete(0,END)
+
+        mostrar_dados()
+
+    #função atualizar cadastro
+
+    
+
+
+    botao_carregar = Button(frame_detalhes, command=novo_cadastro, anchor=CENTER, text='Salvar'.upper(), width=10, overrelief=RIDGE, font=('Ivy 7 bold'), bg=co3, fg=co1)
+    botao_carregar.place(x=7, y=200)
+
+    botao_deletar = Button(frame_detalhes, anchor=CENTER, text='Deletar'.upper(), width=10, overrelief=RIDGE, font=('Ivy 7 bold'), bg=co4, fg=co1)
+    botao_deletar.place(x=87, y=200)
+
+    botao_atualizar = Button(frame_detalhes, anchor=CENTER, text='Atualizar'.upper(), width=10, overrelief=RIDGE, font=('Ivy 7 bold'), bg=co2, fg=co1)
+    botao_atualizar.place(x=167, y=200)
+
 
     mostrar_dados()
-#-------------------------------------------------------------------------------------------------
+
 #----- salvar
 
 def salvar():
     print('Salvar')
+    
+
+#---- controle
+
+def control(i):
+    if i == 'cadastro':
+        for widget in frame_detalhes.winfo_children():
+            widget.destroy()
+
+        for widget in frame_tabela.winfo_children():
+            widget.destroy()
+
+        cadastro()    
+ 
+
+    if i == 'salvar':
+        for widget in frame_detalhes.winfo_children():
+            widget.destroy()
+
+        for widget in frame_tabela.winfo_children():
+            widget.destroy()
+
+        salvar()    
+    
+
+# ------botoes
+
+app_image_cadastro = Image.open('add.png')
+app_image_cadastro = app_image_cadastro.resize((18,18))
+app_image_cadastro = ImageTk.PhotoImage(app_image_cadastro)
+app_cadastro = Button(frame_dados, command=lambda:control('cadastro'), image=app_image_cadastro, text="Adicionar", width=100, compound=LEFT,  overrelief=RIDGE, font=('Ivy 11'), bg= co1, fg=co0)
+app_cadastro.place(x=10, y=30)
+
+add_image_salvar = Image.open('salvar.png') 
+add_image_salvar = add_image_salvar.resize((18,18))
+add_image_salvar = ImageTk.PhotoImage(add_image_salvar)
+app_salvar = Button(frame_dados, command=lambda:control('salvar'), image=add_image_salvar, text="Salvar", width=100, compound=LEFT,  overrelief=RIDGE, font=('Ivy 11'), bg= co1, fg=co0)
+app_salvar.place(x=150, y=30)
 
 
 janela.mainloop()
