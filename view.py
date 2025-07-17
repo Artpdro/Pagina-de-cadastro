@@ -1,83 +1,74 @@
-import sqlite3 
+import sqlite3
 
-try:
-    con = sqlite3.connect('cadastro_contadores.db')
-    print("Conexão com o banco de dados feita com sucesso!")
-except sqlite3.Error as e:
-    print("Erro ao conectar ao banco de dados!", e)
+# Conecta ao banco (ou cria, se não existir)
+conn = sqlite3.connect('contadores.db')
+cursor = conn.cursor()
 
-# tabela de contadores
-try:
-    with con:
-        cur = con.cursor()
-        cur.execute(""" CREATE TABLE IF NOT EXISTS contadores (
-            id INTEGER PRIMARY KEY AUTOINCREMENT,
-            nome TEXT,
-            empresa TEXT
-        )""")
+# Garante que a tabela exista
+cursor.execute("""
+CREATE TABLE IF NOT EXISTS contadores (
+    cnpj          TEXT PRIMARY KEY,
+    razao_social  TEXT NOT NULL,
+    nome_fantasia TEXT NOT NULL,
+    municipio     TEXT NOT NULL,
+    contador      TEXT NOT NULL,
+    tel_contador  TEXT NOT NULL
+)
+""")
+conn.commit()
 
+def criar_contador(cnpj, razao_social, nome_fantasia, municipio, contador, tel_contador):
+    """
+    Insere um novo registro de contador.
+    """
+    cursor.execute("""
+        INSERT INTO contadores
+          (cnpj, razao_social, nome_fantasia, municipio, contador, tel_contador)
+        VALUES (?, ?, ?, ?, ?, ?)
+    """, (cnpj, razao_social, nome_fantasia, municipio, contador, tel_contador))
+    conn.commit()
 
-        print("Tabela contadores criada com sucesso!")
+def excluir_contador(cnpj):
+    """
+    Exclui o registro de contador com o CNPJ informado.
+    """
+    cursor.execute(
+        "DELETE FROM contadores WHERE cnpj = ?",
+        (cnpj,)
+    )
+    conn.commit()
 
+def atualizar_contador(cnpj, *, razao_social=None, nome_fantasia=None,
+                      municipio=None, contador=None, tel_contador=None):
+    """
+    Atualiza apenas os campos não-None para o contador identificado pelo CNPJ.
+    Exemplo:
+      atualizar_contador("00.000.000/0001-00", razao_social="Nova Razão")
+    """
+    campos = []
+    valores = []
 
-except sqlite3.Error as e:
-    print("Erro ao criar tabela de contadores", e)
+    if razao_social is not None:
+        campos.append("razao_social = ?")
+        valores.append(razao_social)
+    if nome_fantasia is not None:
+        campos.append("nome_fantasia = ?")
+        valores.append(nome_fantasia)
+    if municipio is not None:
+        campos.append("municipio = ?")
+        valores.append(municipio)
+    if contador is not None:
+        campos.append("contador = ?")
+        valores.append(contador)
+    if tel_contador is not None:
+        campos.append("tel_contador = ?")
+        valores.append(tel_contador)
 
-try:
-    con = sqlite3.connect('cadastro_contadores.db')
-    print("Conexão com o banco de dados feita com sucesso!")
-except sqlite3.Error as e:
-    print("Erro ao conectar ao banco de dados!", e)
+    if not campos:
+        # nada a atualizar
+        return
 
-# adicionar contador
-def adicionar_contador(i):
-    with con:
-        cur = con.cursor()
-        query = "INSERT INTO contadores (id, nome, empresa, cidade) VALUES (?,?,?,?)"
-        cur.execute(query,)
-
-# adicionar_contador(['abreu', 'thiago', 'bacanas'])
-
-# ver tudo
-
-def ver_contadores(): 
-    lista = []
-    with con:
-        cur = con.cursor()
-        cur.execute('SELECT * FROM contadores')
-        linha = cur.fetchall()
-
-        for i in linha:
-            lista.append(i)
-    return lista
-
-# print(ver_contadores())
-
-con = sqlite3.connect('cadastro_contadores.db')
-
-# atualizar contadores
-
-def atualizar_contador(id, nome, empresa, cidade):
-    with con:
-        cur = con.cursor()
-        query = "UPDATE contadores SET nome = ?, empresa = ? cidade = ? WHERE id = ?"
-        cur.execute(query, (nome, empresa, cidade, id))
-        print("Contador atualizado com sucesso!")
-
-l = ['Gisele', 'sindnorte']
-
-atualizar_contador(1, 'Gisele', 'Sindnorte')
-
-# deletar contadores
-
-def deletar_contador(id):
-    with con:
-        cur = con.cursor()
-        query = "DELETE FROM contadores WHERE id=?"
-        cur.execute(query, (id))
-        print("Contador deletado com sucesso!")
-
-deletar_contador([2])
-
-# ------------------------------
-
+    valores.append(cnpj)  # condição WHERE
+    sql = f"UPDATE contadores SET {', '.join(campos)} WHERE cnpj = ?"
+    cursor.execute(sql, valores)
+    conn.commit()
