@@ -91,14 +91,44 @@ CREATE TABLE IF NOT EXISTS contadores_novo (
     contato             TEXT NOT NULL,
     tipo_pessoa         TEXT NOT NULL,
     tipo_telefone       TEXT NOT NULL,
+    empresas_representadas TEXT,
+    empresa_associada_1 TEXT,
+    empresa_associada_2 TEXT,
+    empresa_associada_3 TEXT,
     nome_solicitante    TEXT,
     solicitante_tipo    TEXT,
     telefone_solicitante TEXT,
     cpf_solicitante     TEXT,
     rg_solicitante      TEXT
+)""")
+conn_contadores_novo.commit()
+
+# Cria a tabela empresas se não existir
+conn_empresas = sqlite3.connect('empresas.db')
+cursor_empresas = conn_empresas.cursor()
+
+cursor_empresas.execute("""
+CREATE TABLE IF NOT EXISTS empresas (
+    cnpj                TEXT PRIMARY KEY,
+    razao_social        TEXT NOT NULL,
+    nome_fantasia       TEXT,
+    endereco            TEXT,
+    complemento         TEXT,
+    cep                 TEXT,
+    email               TEXT,
+    bairro              TEXT,
+    uf                  TEXT,
+    municipio           TEXT,
+    telefone            TEXT,
+    atividade_principal TEXT,
+    data_abertura       TEXT,
+    situacao            TEXT,
+    responsavel         TEXT,
+    telefone_responsavel TEXT,
+    email_responsavel   TEXT
 )
 """)
-conn_contadores_novo.commit()
+conn_empresas.commit()
 
 def criar_contador(dados):
     """
@@ -239,12 +269,12 @@ def ver_dados_repis():
 
 # Funções para a nova tabela contadores com novos campos
 def criar_contador_novo(dados):
-    cnpj, nome, municipio, socio, contato, tipo_pessoa, tipo_telefone, nome_solicitante, solicitante_tipo, telefone_solicitante, cpf_solicitante, rg_solicitante = dados
+    cnpj, nome, municipio, socio, contato, tipo_pessoa, tipo_telefone, empresas_representadas, empresa_associada_1, empresa_associada_2, empresa_associada_3, nome_solicitante, solicitante_tipo, telefone_solicitante, cpf_solicitante, rg_solicitante = dados
     cursor_contadores_novo.execute("""
         INSERT INTO contadores_novo
-          (cnpj, nome, municipio, socio, contato, tipo_pessoa, tipo_telefone, nome_solicitante, solicitante_tipo, telefone_solicitante, cpf_solicitante, rg_solicitante)
-        VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
-    """, (cnpj, nome, municipio, socio, contato, tipo_pessoa, tipo_telefone, nome_solicitante, solicitante_tipo, telefone_solicitante, cpf_solicitante, rg_solicitante)
+          (cnpj, nome, municipio, socio, contato, tipo_pessoa, tipo_telefone, empresas_representadas, empresa_associada_1, empresa_associada_2, empresa_associada_3, nome_solicitante, solicitante_tipo, telefone_solicitante, cpf_solicitante, rg_solicitante)
+        VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+    """, (cnpj, nome, municipio, socio, contato, tipo_pessoa, tipo_telefone, empresas_representadas, empresa_associada_1, empresa_associada_2, empresa_associada_3, nome_solicitante, solicitante_tipo, telefone_solicitante, cpf_solicitante, rg_solicitante)
     )
     conn_contadores_novo.commit()
 
@@ -277,7 +307,54 @@ def ver_dados_contadores():
     lista = []
     with conn_contadores_novo:
         cur = conn_contadores_novo.cursor()
-        cur.execute('SELECT cnpj, nome, municipio, socio, contato, tipo_pessoa, tipo_telefone, nome_solicitante, solicitante_tipo, telefone_solicitante, cpf_solicitante, rg_solicitante FROM contadores_novo')
+        cur.execute('SELECT cnpj, nome, municipio, socio, contato, tipo_pessoa, tipo_telefone, empresas_representadas, empresa_associada_1, empresa_associada_2, empresa_associada_3, nome_solicitante, solicitante_tipo, telefone_solicitante, cpf_solicitante, rg_solicitante FROM contadores_novo')
+        linha = cur.fetchall()
+
+        for i in linha:
+            lista.append(i)
+    return lista
+
+# Funções para a tabela empresas
+def criar_empresa(dados):
+    cnpj, razao_social, nome_fantasia, endereco, complemento, cep, email, bairro, uf, municipio, telefone, atividade_principal, data_abertura, situacao, responsavel, telefone_responsavel, email_responsavel = dados
+    cursor_empresas.execute("""
+        INSERT INTO empresas
+          (cnpj, razao_social, nome_fantasia, endereco, complemento, cep, email, bairro, uf, municipio, telefone, atividade_principal, data_abertura, situacao, responsavel, telefone_responsavel, email_responsavel)
+        VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+    """, (cnpj, razao_social, nome_fantasia, endereco, complemento, cep, email, bairro, uf, municipio, telefone, atividade_principal, data_abertura, situacao, responsavel, telefone_responsavel, email_responsavel)
+    )
+    conn_empresas.commit()
+
+def buscar_empresa_por_cnpj(cnpj):
+    cursor_empresas.execute("SELECT * FROM empresas WHERE cnpj = ?", (cnpj,))
+    return cursor_empresas.fetchone()
+
+def atualizar_empresa(cnpj, **kwargs):
+    campos = []
+    valores = []
+
+    for campo, valor in kwargs.items():
+        if valor is not None:
+            campos.append(f"{campo} = ?")
+            valores.append(valor)
+
+    if not campos:
+        return
+
+    valores.append(cnpj)
+    sql = f"UPDATE empresas SET {', '.join(campos)} WHERE cnpj = ?"
+    cursor_empresas.execute(sql, valores)
+    conn_empresas.commit()
+
+def excluir_empresa(cnpj):
+    cursor_empresas.execute("DELETE FROM empresas WHERE cnpj = ?", (cnpj,))
+    conn_empresas.commit()
+
+def ver_dados_empresas():
+    lista = []
+    with conn_empresas:
+        cur = conn_empresas.cursor()
+        cur.execute('SELECT cnpj, razao_social, nome_fantasia, endereco, complemento, cep, email, bairro, uf, municipio, telefone, atividade_principal, data_abertura, situacao, responsavel, telefone_responsavel, email_responsavel FROM empresas')
         linha = cur.fetchall()
 
         for i in linha:
@@ -291,10 +368,14 @@ def exportar_para_pdf(tabela):
             dados = ver_dados_repis()
             headers = ['CNPJ', 'Razão Social', 'Nome Fantasia', 'Endereço', 'Complemento', 'CEP', 'E-mail', 'Bairro', 'UF', 'Município', 'Data Abertura', 'Nome Solicitante', 'Tipo Solicitante', 'Telefone', 'Email Solicitante', 'CPF', 'RG', 'Contador', 'Tel. Contador', 'Email Contador']
             nome_arquivo = "repis_dados.pdf"
-        else:
+        elif tabela == "Contadores":
             dados = ver_dados_contadores()
-            headers = ['CNPJ', 'Nome', 'Município', 'Sócio', 'Contato', 'Tipo Pessoa', 'Tipo Telefone', 'Nome Solicitante', 'Tipo Solicitante', 'Tel. Solicitante', 'CPF Solicitante', 'RG Solicitante']
+            headers = ['CNPJ', 'Nome', 'Município', 'Sócio', 'Contato', 'Tipo Pessoa', 'Tipo Telefone', 'Empresas Representadas', 'Empresa Associada 1', 'Empresa Associada 2', 'Empresa Associada 3', 'Nome Solicitante', 'Tipo Solicitante', 'Tel. Solicitante', 'CPF Solicitante', 'RG Solicitante']
             nome_arquivo = "contadores_dados.pdf"
+        else:  # Empresas
+            dados = ver_dados_empresas()
+            headers = ['CNPJ', 'Razão Social', 'Nome Fantasia', 'Endereço', 'Complemento', 'CEP', 'E-mail', 'Bairro', 'UF', 'Município', 'Telefone', 'Atividade Principal', 'Data Abertura', 'Situação', 'Responsável', 'Tel. Responsável', 'Email Responsável']
+            nome_arquivo = "empresas_dados.pdf"
         
         doc = SimpleDocTemplate(nome_arquivo, pagesize=letter)
         elements = []
@@ -332,10 +413,14 @@ def exportar_para_word(tabela):
             dados = ver_dados_repis()
             headers = ['CNPJ', 'Razão Social', 'Nome Fantasia', 'Endereço', 'Complemento', 'CEP', 'E-mail', 'Bairro', 'UF', 'Município', 'Data Abertura', 'Nome Solicitante', 'Tipo Solicitante', 'Telefone', 'Email Solicitante', 'CPF', 'RG', 'Contador', 'Tel. Contador', 'Email Contador']
             nome_arquivo = "repis_dados.docx"
-        else:
+        elif tabela == "Contadores":
             dados = ver_dados_contadores()
-            headers = ['CNPJ', 'Nome', 'Município', 'Sócio', 'Contato', 'Tipo Pessoa', 'Tipo Telefone', 'Nome Solicitante', 'Tipo Solicitante', 'Tel. Solicitante', 'CPF Solicitante', 'RG Solicitante']
+            headers = ["CNPJ", "Nome", "Município", "Sócio", "Contato", "Tipo Pessoa", "Tipo Telefone", "Empresas Representadas", "Empresa Associada 1", "Empresa Associada 2", "Empresa Associada 3", "Nome Solicitante", "Tipo Solicitante", "Tel. Solicitante", "CPF Solicitante", "RG Solicitante"]
             nome_arquivo = "contadores_dados.docx"
+        else:  # Empresas
+            dados = ver_dados_empresas()
+            headers = ['CNPJ', 'Razão Social', 'Nome Fantasia', 'Endereço', 'Complemento', 'CEP', 'E-mail', 'Bairro', 'UF', 'Município', 'Telefone', 'Atividade Principal', 'Data Abertura', 'Situação', 'Responsável', 'Tel. Responsável', 'Email Responsável']
+            nome_arquivo = "empresas_dados.docx"
         
         doc = Document()
         doc.add_heading(f'Relatório - {tabela}', 0)
@@ -366,10 +451,14 @@ def exportar_para_excel(tabela):
             dados = ver_dados_repis()
             headers = ['CNPJ', 'Razão Social', 'Nome Fantasia', 'Endereço', 'Complemento', 'CEP', 'E-mail', 'Bairro', 'UF', 'Município', 'Data Abertura', 'Nome Solicitante', 'Tipo Solicitante', 'Telefone', 'Email Solicitante', 'CPF', 'RG', 'Contador', 'Tel. Contador', 'Email Contador']
             nome_arquivo = "repis_dados.xlsx"
-        else:
+        elif tabela == "Contadores":
             dados = ver_dados_contadores()
-            headers = ['CNPJ', 'Nome', 'Município', 'Sócio', 'Contato', 'Tipo Pessoa', 'Tipo Telefone', 'Nome Solicitante', 'Tipo Solicitante', 'Tel. Solicitante', 'CPF Solicitante', 'RG Solicitante']
+            headers = ["CNPJ", "Nome", "Município", "Sócio", "Contato", "Tipo Pessoa", "Tipo Telefone", "Empresas Representadas", "Empresa Associada 1", "Empresa Associada 2", "Empresa Associada 3", "Nome Solicitante", "Tipo Solicitante", "Tel. Solicitante", "CPF Solicitante", "RG Solicitante"]
             nome_arquivo = "contadores_dados.xlsx"
+        else:  # Empresas
+            dados = ver_dados_empresas()
+            headers = ['CNPJ', 'Razão Social', 'Nome Fantasia', 'Endereço', 'Complemento', 'CEP', 'E-mail', 'Bairro', 'UF', 'Município', 'Telefone', 'Atividade Principal', 'Data Abertura', 'Situação', 'Responsável', 'Tel. Responsável', 'Email Responsável']
+            nome_arquivo = "empresas_dados.xlsx"
         
         df = pd.DataFrame(dados, columns=headers)
         df.to_excel(nome_arquivo, index=False)
@@ -379,12 +468,12 @@ def exportar_para_excel(tabela):
     except Exception as e:
         messagebox.showerror('Erro', f'Erro ao criar Excel: {str(e)}')
 
-from pdf_filler import processar_preenchimento_pdf
+from pdf_filler import processar_preenchimento_pdf_novo
 
 def preencher_pdf_repis(dados_repis, dados_contador=None):
     """
-    Preenche o PDF REPIS com os dados fornecidos
+    Preenche o PDF REPIS com os dados fornecidos usando coordenadas alinhadas
     """
-    return processar_preenchimento_pdf(dados_repis, dados_contador)
+    return processar_preenchimento_pdf_novo(dados_repis, dados_contador)
 
 print()

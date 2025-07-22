@@ -103,6 +103,9 @@ def atualizar_navegacao():
     btn_contador = criar_botao_nav("Contador", lambda: control('contador'), aba_ativa.get() == "contador")
     btn_contador.pack(side=LEFT, padx=10, pady=20)
     
+    btn_empresas = criar_botao_nav("Empresas", lambda: control('empresas'), aba_ativa.get() == "empresas")
+    btn_empresas.pack(side=LEFT, padx=10, pady=20)
+    
     btn_preenchimento = criar_botao_nav("Preenchimento PDF", lambda: control('preenchimento'), aba_ativa.get() == "preenchimento")
     btn_preenchimento.pack(side=LEFT, padx=10, pady=20)
     
@@ -587,15 +590,23 @@ def contador():
                 e_contato.insert(0, resultado[4])
                 combo_tipo_pessoa.set(resultado[5] if resultado[5] else "")
                 combo_tipo_telefone.set(resultado[6] if resultado[6] else "")
+                e_empresas_representadas.delete(0, END)
+                e_empresas_representadas.insert(0, resultado[7] if resultado[7] else "")
+                e_empresa_associada_1.delete(0, END)
+                e_empresa_associada_1.insert(0, resultado[8] if resultado[8] else "")
+                e_empresa_associada_2.delete(0, END)
+                e_empresa_associada_2.insert(0, resultado[9] if resultado[9] else "")
+                e_empresa_associada_3.delete(0, END)
+                e_empresa_associada_3.insert(0, resultado[10] if resultado[10] else "")
                 e_nome_solicitante.delete(0, END)
-                e_nome_solicitante.insert(0, resultado[7] if resultado[7] else "")
-                combo_solicitante_tipo.set(resultado[8] if resultado[8] else "")
+                e_nome_solicitante.insert(0, resultado[11] if resultado[11] else "")
+                combo_solicitante_tipo.set(resultado[12] if resultado[12] else "")
                 e_telefone_solicitante.delete(0, END)
-                e_telefone_solicitante.insert(0, resultado[9] if resultado[9] else "")
+                e_telefone_solicitante.insert(0, resultado[13] if resultado[13] else "")
                 e_cpf_solicitante.delete(0, END)
-                e_cpf_solicitante.insert(0, resultado[10] if resultado[10] else "")
+                e_cpf_solicitante.insert(0, resultado[14] if resultado[14] else "")
                 e_rg_solicitante.delete(0, END)
-                e_rg_solicitante.insert(0, resultado[11] if resultado[11] else "")
+                e_rg_solicitante.insert(0, resultado[15] if resultado[15] else "")
                 messagebox.showinfo('Sucesso', 'Dados encontrados!')
             else:
                 messagebox.showwarning('Aviso', 'Registro nao encontrado!')
@@ -651,6 +662,23 @@ def contador():
     Label(form_inner, text="Tipo de Telefone *", font=('Segoe UI', 10, 'bold'), bg=co1, fg=co0).grid(row=row, column=0, sticky=W, pady=5)
     combo_tipo_telefone = ttk.Combobox(form_inner, width=15, values=["Gerente", "Responsavel"], font=('Segoe UI', 10))
     combo_tipo_telefone.grid(row=row, column=1, sticky=W, padx=10, pady=5)
+
+    Label(form_inner, text="Empresas Representadas", font=('Segoe UI', 10, 'bold'), bg=co1, fg=co0).grid(row=row, column=0, sticky=W, pady=5)
+    e_empresas_representadas = Entry(form_inner, width=30, font=('Segoe UI', 10), relief='solid', bd=2)
+    e_empresas_representadas.grid(row=row, column=1, sticky=EW, padx=10, pady=5)
+
+    Label(form_inner, text="Empresa Associada 1", font=('Segoe UI', 10, 'bold'), bg=co1, fg=co0).grid(row=row, column=2, sticky=W, pady=5)
+    e_empresa_associada_1 = Entry(form_inner, width=30, font=('Segoe UI', 10), relief='solid', bd=2)
+    e_empresa_associada_1.grid(row=row, column=3, sticky=EW, padx=10, pady=5)
+    row += 1
+
+    Label(form_inner, text="Empresa Associada 2", font=('Segoe UI', 10, 'bold'), bg=co1, fg=co0).grid(row=row, column=0, sticky=W, pady=5)
+    e_empresa_associada_2 = Entry(form_inner, width=30, font=('Segoe UI', 10), relief='solid', bd=2)
+    e_empresa_associada_2.grid(row=row, column=1, sticky=EW, padx=10, pady=5)
+
+    Label(form_inner, text="Empresa Associada 3", font=('Segoe UI', 10, 'bold'), bg=co1, fg=co0).grid(row=row, column=2, sticky=W, pady=5)
+    e_empresa_associada_3 = Entry(form_inner, width=30, font=('Segoe UI', 10), relief='solid', bd=2)
+    e_empresa_associada_3.grid(row=row, column=3, sticky=EW, padx=10, pady=5)
     row += 1
 
     # Separador
@@ -706,7 +734,8 @@ def contador():
             if isinstance(widget, ttk.Treeview):
                 widget.destroy()
         
-        list_header = ['CNPJ', 'Nome', 'Município', 'Sócio', 'Contato', 'Tipo Pessoa', 'Nome Solicitante', 'Tipo Solicitante']
+        # Cabeçalhos da tabela com todos os campos importantes
+        list_header = ['CNPJ', 'Nome', 'Município', 'Sócio', 'Contato', 'Tipo Pessoa', 'Tipo Telefone', 'Empresas Representadas', 'Empresa Associada 1', 'Empresa Associada 2', 'Empresa Associada 3', 'Nome Solicitante', 'Tipo Solicitante', 'Telefone', 'CPF']
         df_list = ver_dados_contadores()
 
         global tree_dados_contadores
@@ -714,7 +743,7 @@ def contador():
         tree_frame = Frame(table_frame, bg=co1)
         tree_frame.pack(fill=BOTH, expand=True, padx=10, pady=10)
 
-        tree_dados_contadores = ttk.Treeview(tree_frame, selectmode="extended", columns=list_header, show="headings", height=8)
+        tree_dados_contadores = ttk.Treeview(tree_frame, selectmode="extended", columns=list_header, show="headings", height=10)
         
         # Scrollbars
         vsb = ttk.Scrollbar(tree_frame, orient="vertical", command=tree_dados_contadores.yview)
@@ -728,22 +757,78 @@ def contador():
         tree_frame.grid_rowconfigure(0, weight=1)
         tree_frame.grid_columnconfigure(0, weight=1)
 
-        # Configurar colunas
-        widths = [120, 150, 120, 120, 120, 100, 150, 100]
+        # Configurar colunas com larguras otimizadas
+        widths = [120, 180, 120, 120, 120, 100, 100, 150, 150, 150, 150, 150, 100, 120, 120]
         for i, col in enumerate(list_header):
             tree_dados_contadores.heading(col, text=col, anchor=W)
             tree_dados_contadores.column(col, width=widths[i], anchor=W)
 
-        # Inserir dados com cores alternadas (mostrar apenas campos principais)
+        # Inserir dados com cores alternadas (mostrar todos os campos importantes)
         for i, item in enumerate(df_list):
-            # Mostrar apenas os campos principais na tabela
-            item_display = [item[0], item[1], item[2], item[3], item[4], item[5], item[7], item[8]]
+            # Exibir todos os campos importantes na tabela
+            item_display = [
+                item[0],  # CNPJ
+                item[1],  # Nome
+                item[2],  # Município
+                item[3],  # Sócio
+                item[4],  # Contato
+                item[5],  # Tipo Pessoa
+                item[6],  # Tipo Telefone
+                item[7] if item[7] else "N/A",  # Empresas Representadas
+                item[8] if item[8] else "N/A",  # Empresa Associada 1
+                item[9] if item[9] else "N/A",  # Empresa Associada 2
+                item[10] if item[10] else "N/A",  # Empresa Associada 3
+                item[11] if item[11] else "N/A",  # Nome Solicitante
+                item[12] if item[12] else "N/A",  # Tipo Solicitante
+                item[13] if item[13] else "N/A",  # Telefone
+                item[14] if item[14] else "N/A"  # CPF
+            ]
             tag = 'evenrow' if i % 2 == 0 else 'oddrow'
             tree_dados_contadores.insert('', 'end', values=item_display, tags=(tag,))
         
         # Configurar tags para cores alternadas
         tree_dados_contadores.tag_configure('evenrow', background=co5)
         tree_dados_contadores.tag_configure('oddrow', background=co1)
+        
+        # Adicionar evento de duplo clique para carregar dados no formulário
+        def on_item_double_click(event):
+            try:
+                selected_item = tree_dados_contadores.selection()[0]
+                values = tree_dados_contadores.item(selected_item, 'values')
+                
+                # Carregar dados nos campos do formulário
+                e_cnpj.delete(0, END)
+                e_cnpj.insert(0, values[0])
+                e_nome.delete(0, END)
+                e_nome.insert(0, values[1])
+                e_municipio.delete(0, END)
+                e_municipio.insert(0, values[2])
+                e_socio.delete(0, END)
+                e_socio.insert(0, values[3])
+                e_contato.delete(0, END)
+                e_contato.insert(0, values[4])
+                combo_tipo_pessoa.set(values[5])
+                combo_tipo_telefone.set(values[6])
+                e_empresas_representadas.delete(0, END)
+                e_empresas_representadas.insert(0, values[7] if values[7] != "N/A" else "")
+                e_empresa_associada_1.delete(0, END)
+                e_empresa_associada_1.insert(0, values[8] if values[8] != "N/A" else "")
+                e_empresa_associada_2.delete(0, END)
+                e_empresa_associada_2.insert(0, values[9] if values[9] != "N/A" else "")
+                e_empresa_associada_3.delete(0, END)
+                e_empresa_associada_3.insert(0, values[10] if values[10] != "N/A" else "")
+                e_nome_solicitante.delete(0, END)
+                e_nome_solicitante.insert(0, values[11] if values[11] != "N/A" else "")
+                combo_solicitante_tipo.set(values[12] if values[12] != "N/A" else "")
+                e_telefone_solicitante.delete(0, END)
+                e_telefone_solicitante.insert(0, values[13] if values[13] != "N/A" else "")
+                e_cpf_solicitante.delete(0, END)
+                e_cpf_solicitante.insert(0, values[14] if values[14] != "N/A" else "")
+                
+            except IndexError:
+                pass
+        
+        tree_dados_contadores.bind('<Double-1>', on_item_double_click)
 
     # Funcoes CRUD
     def novo_cadastro_contador():
@@ -754,13 +839,17 @@ def contador():
         contato = e_contato.get()
         tipo_pessoa = combo_tipo_pessoa.get()
         tipo_telefone = combo_tipo_telefone.get()
+        empresas_representadas = e_empresas_representadas.get()
+        empresa_associada_1 = e_empresa_associada_1.get()
+        empresa_associada_2 = e_empresa_associada_2.get()
+        empresa_associada_3 = e_empresa_associada_3.get()
         nome_solicitante = e_nome_solicitante.get()
         solicitante_tipo = combo_solicitante_tipo.get()
         telefone_solicitante = e_telefone_solicitante.get()
         cpf_solicitante = e_cpf_solicitante.get()
         rg_solicitante = e_rg_solicitante.get()
         
-        lista = [cnpj, nome, municipio, socio, contato, tipo_pessoa, tipo_telefone, nome_solicitante, solicitante_tipo, telefone_solicitante, cpf_solicitante, rg_solicitante]
+        lista = [cnpj, nome, municipio, socio, contato, tipo_pessoa, tipo_telefone, empresas_representadas, empresa_associada_1, empresa_associada_2, empresa_associada_3, nome_solicitante, solicitante_tipo, telefone_solicitante, cpf_solicitante, rg_solicitante]
 
         # Verificar campos obrigatórios
         campos_obrigatorios = [cnpj, nome, municipio, socio, contato, tipo_pessoa, tipo_telefone]
@@ -773,7 +862,7 @@ def contador():
             messagebox.showinfo('Sucesso', 'Os dados foram inseridos com sucesso')
 
             # Limpar campos
-            for entry in [e_cnpj, e_nome, e_municipio, e_socio, e_contato, e_nome_solicitante, e_telefone_solicitante, e_cpf_solicitante, e_rg_solicitante]:
+            for entry in [e_cnpj, e_nome, e_municipio, e_socio, e_contato, e_empresas_representadas, e_empresa_associada_1, e_empresa_associada_2, e_empresa_associada_3, e_nome_solicitante, e_telefone_solicitante, e_cpf_solicitante, e_rg_solicitante]:
                 entry.delete(0, END)
             combo_tipo_pessoa.set("")
             combo_tipo_telefone.set("")
@@ -795,6 +884,10 @@ def contador():
                 'contato': e_contato.get(),
                 'tipo_pessoa': combo_tipo_pessoa.get(),
                 'tipo_telefone': combo_tipo_telefone.get(),
+                'empresas_representadas': e_empresas_representadas.get(),
+                'empresa_associada_1': e_empresa_associada_1.get(),
+                'empresa_associada_2': e_empresa_associada_2.get(),
+                'empresa_associada_3': e_empresa_associada_3.get(),
                 'nome_solicitante': e_nome_solicitante.get(),
                 'solicitante_tipo': combo_solicitante_tipo.get(),
                 'telefone_solicitante': e_telefone_solicitante.get(),
@@ -1071,7 +1164,7 @@ def exportar():
     
     # Selecao de tabela
     Label(options_frame, text="Selecione a tabela:", font=('Segoe UI', 12, 'bold'), bg=co1, fg=co0).pack(pady=10)
-    combo_tabela = ttk.Combobox(options_frame, width=20, values=["REPIS", "Contadores"], font=('Segoe UI', 12))
+    combo_tabela = ttk.Combobox(options_frame, width=20, values=["REPIS", "Contadores", "Empresas"], font=('Segoe UI', 12))
     combo_tabela.pack(pady=10)
     
     # Frame de botoes de exportacao
@@ -1124,12 +1217,452 @@ def exportar():
     Label(info_frame, text="Escolha o formato desejado para exportar os dados cadastrados.", 
           font=('Segoe UI', 10), bg=co5, fg=co0, justify=CENTER).pack(pady=10)
 
+#---- EMPRESAS com design moderno
+def empresas():
+    # Limpar frames
+    for widget in frame_content.winfo_children():
+        widget.destroy()
+    for widget in frame_data_display.winfo_children():
+        widget.destroy()
+    
+    aba_ativa.set("empresas")
+    atualizar_navegacao()
+    
+    # Container principal com scroll
+    main_container = Frame(frame_content, bg=co1, relief="solid", bd=1)
+    main_container.pack(fill=BOTH, expand=True, padx=10, pady=10)
+    
+    # Canvas para scroll
+    canvas = Canvas(main_container, bg=co1)
+    scrollbar = Scrollbar(main_container, orient="vertical", command=canvas.yview)
+    scrollable_frame = Frame(canvas, bg=co1)
+    
+    scrollable_frame.bind(
+        "<Configure>",
+        lambda e: canvas.configure(scrollregion=canvas.bbox("all"))
+    )
+    
+    canvas.create_window((0, 0), window=scrollable_frame, anchor="nw")
+    canvas.configure(yscrollcommand=scrollbar.set)
+    
+    canvas.pack(side="left", fill="both", expand=True)
+    scrollbar.pack(side="right", fill="y")
+    
+    # Titulo da secao
+    title_frame = Frame(scrollable_frame, bg=co8, height=50)
+    title_frame.pack(fill=X, padx=5, pady=5)
+    title_frame.pack_propagate(False)
+    
+    section_title = Label(title_frame, text="Cadastro de Empresas", 
+                         font=('Segoe UI', 16, 'bold'), bg=co8, fg=co1)
+    section_title.pack(pady=12)
+    
+    # Frame de pesquisa estilizado
+    search_frame = LabelFrame(scrollable_frame, text="Pesquisa por CNPJ", 
+                             font=('Segoe UI', 12, 'bold'), bg=co1, fg=co0,
+                             relief="solid", bd=1)
+    search_frame.pack(fill=X, padx=10, pady=5)
+    
+    search_inner = Frame(search_frame, bg=co1)
+    search_inner.pack(fill=X, padx=10, pady=10)
+    
+    Label(search_inner, text="CNPJ:", font=('Segoe UI', 10, 'bold'), bg=co1, fg=co0).grid(row=0, column=0, sticky=W, padx=5)
+    e_pesquisa_emp = Entry(search_inner, width=25, font=('Segoe UI', 10), relief='solid', bd=2)
+    e_pesquisa_emp.grid(row=0, column=1, padx=10, pady=5)
+    
+    def pesquisar_empresa():
+        cnpj = e_pesquisa_emp.get()
+        if cnpj:
+            resultado = buscar_empresa_por_cnpj(cnpj)
+            if resultado:
+                # Preencher todos os campos
+                e_cnpj.delete(0, END)
+                e_cnpj.insert(0, resultado[0])
+                e_razao_social.delete(0, END)
+                e_razao_social.insert(0, resultado[1] if resultado[1] else "")
+                e_nome_fantasia.delete(0, END)
+                e_nome_fantasia.insert(0, resultado[2] if resultado[2] else "")
+                e_endereco.delete(0, END)
+                e_endereco.insert(0, resultado[3] if resultado[3] else "")
+                e_complemento.delete(0, END)
+                e_complemento.insert(0, resultado[4] if resultado[4] else "")
+                e_cep.delete(0, END)
+                e_cep.insert(0, resultado[5] if resultado[5] else "")
+                e_email.delete(0, END)
+                e_email.insert(0, resultado[6] if resultado[6] else "")
+                e_bairro.delete(0, END)
+                e_bairro.insert(0, resultado[7] if resultado[7] else "")
+                combo_uf.set(resultado[8] if resultado[8] else "")
+                e_municipio.delete(0, END)
+                e_municipio.insert(0, resultado[9] if resultado[9] else "")
+                e_telefone.delete(0, END)
+                e_telefone.insert(0, resultado[10] if resultado[10] else "")
+                e_atividade_principal.delete(0, END)
+                e_atividade_principal.insert(0, resultado[11] if resultado[11] else "")
+                e_data_abertura.delete(0, END)
+                e_data_abertura.insert(0, resultado[12] if resultado[12] else "")
+                combo_situacao.set(resultado[13] if resultado[13] else "")
+                e_responsavel.delete(0, END)
+                e_responsavel.insert(0, resultado[14] if resultado[14] else "")
+                e_telefone_responsavel.delete(0, END)
+                e_telefone_responsavel.insert(0, resultado[15] if resultado[15] else "")
+                e_email_responsavel.delete(0, END)
+                e_email_responsavel.insert(0, resultado[16] if resultado[16] else "")
+                messagebox.showinfo('Sucesso', 'Dados encontrados!')
+            else:
+                messagebox.showwarning('Aviso', 'CNPJ nao encontrado!')
+        else:
+            messagebox.showerror('Erro', 'Digite um CNPJ para pesquisar')
+
+    search_btn = criar_botao_moderno(search_inner, 'Pesquisar', pesquisar_empresa, co8)
+    search_btn.grid(row=0, column=2, padx=10)
+    
+    # Frame do formulario com layout em grid moderno
+    form_frame = LabelFrame(scrollable_frame, text="Dados da Empresa", 
+                           font=('Segoe UI', 12, 'bold'), bg=co1, fg=co0,
+                           relief="solid", bd=1)
+    form_frame.pack(fill=BOTH, expand=True, padx=10, pady=5)
+    
+    form_inner = Frame(form_frame, bg=co1)
+    form_inner.pack(fill=BOTH, expand=True, padx=15, pady=15)
+    
+    # Configurar grid
+    form_inner.columnconfigure(1, weight=1)
+    form_inner.columnconfigure(3, weight=1)
+    
+    # Campos do formulario com estilo moderno
+    row = 0
+    
+    # Linha 1: CNPJ e Razão Social
+    Label(form_inner, text="CNPJ *", font=('Segoe UI', 10, 'bold'), bg=co1, fg=co0).grid(row=row, column=0, sticky=W, pady=5)
+    e_cnpj = Entry(form_inner, width=30, font=('Segoe UI', 10), relief='solid', bd=2)
+    e_cnpj.grid(row=row, column=1, sticky=EW, padx=10, pady=5)
+
+    Label(form_inner, text="Razão Social *", font=('Segoe UI', 10, 'bold'), bg=co1, fg=co0).grid(row=row, column=2, sticky=W, pady=5)
+    e_razao_social = Entry(form_inner, width=30, font=('Segoe UI', 10), relief='solid', bd=2)
+    e_razao_social.grid(row=row, column=3, sticky=EW, padx=10, pady=5)
+    row += 1
+
+    # Linha 2: Nome Fantasia e E-mail
+    Label(form_inner, text="Nome Fantasia", font=('Segoe UI', 10, 'bold'), bg=co1, fg=co0).grid(row=row, column=0, sticky=W, pady=5)
+    e_nome_fantasia = Entry(form_inner, width=30, font=('Segoe UI', 10), relief='solid', bd=2)
+    e_nome_fantasia.grid(row=row, column=1, sticky=EW, padx=10, pady=5)
+
+    Label(form_inner, text="E-mail", font=('Segoe UI', 10, 'bold'), bg=co1, fg=co0).grid(row=row, column=2, sticky=W, pady=5)
+    e_email = Entry(form_inner, width=30, font=('Segoe UI', 10), relief='solid', bd=2)
+    e_email.grid(row=row, column=3, sticky=EW, padx=10, pady=5)
+    row += 1
+
+    # Linha 3: Endereço
+    Label(form_inner, text="Endereço", font=('Segoe UI', 10, 'bold'), bg=co1, fg=co0).grid(row=row, column=0, sticky=W, pady=5)
+    e_endereco = Entry(form_inner, width=60, font=('Segoe UI', 10), relief='solid', bd=2)
+    e_endereco.grid(row=row, column=1, columnspan=3, sticky=EW, padx=10, pady=5)
+    row += 1
+
+    # Linha 4: Complemento e CEP
+    Label(form_inner, text="Complemento", font=('Segoe UI', 10, 'bold'), bg=co1, fg=co0).grid(row=row, column=0, sticky=W, pady=5)
+    e_complemento = Entry(form_inner, width=30, font=('Segoe UI', 10), relief='solid', bd=2)
+    e_complemento.grid(row=row, column=1, sticky=EW, padx=10, pady=5)
+
+    Label(form_inner, text="CEP", font=('Segoe UI', 10, 'bold'), bg=co1, fg=co0).grid(row=row, column=2, sticky=W, pady=5)
+    e_cep = Entry(form_inner, width=30, font=('Segoe UI', 10), relief='solid', bd=2)
+    e_cep.grid(row=row, column=3, sticky=EW, padx=10, pady=5)
+    row += 1
+
+    # Linha 5: Bairro e UF
+    Label(form_inner, text="Bairro", font=('Segoe UI', 10, 'bold'), bg=co1, fg=co0).grid(row=row, column=0, sticky=W, pady=5)
+    e_bairro = Entry(form_inner, width=30, font=('Segoe UI', 10), relief='solid', bd=2)
+    e_bairro.grid(row=row, column=1, sticky=EW, padx=10, pady=5)
+
+    Label(form_inner, text="UF", font=('Segoe UI', 10, 'bold'), bg=co1, fg=co0).grid(row=row, column=2, sticky=W, pady=5)
+    combo_uf = ttk.Combobox(form_inner, width=15, values=["AC", "AL", "AP", "AM", "BA", "CE", "DF", "ES", "GO", "MA", "MT", "MS", "MG", "PA", "PB", "PR", "PE", "PI", "RJ", "RN", "RS", "RO", "RR", "SC", "SP", "SE", "TO"], font=('Segoe UI', 10))
+    combo_uf.grid(row=row, column=3, sticky=W, padx=10, pady=5)
+    row += 1
+
+    # Linha 6: Município e Telefone
+    Label(form_inner, text="Município", font=('Segoe UI', 10, 'bold'), bg=co1, fg=co0).grid(row=row, column=0, sticky=W, pady=5)
+    e_municipio = Entry(form_inner, width=30, font=('Segoe UI', 10), relief='solid', bd=2)
+    e_municipio.grid(row=row, column=1, sticky=EW, padx=10, pady=5)
+
+    Label(form_inner, text="Telefone", font=('Segoe UI', 10, 'bold'), bg=co1, fg=co0).grid(row=row, column=2, sticky=W, pady=5)
+    e_telefone = Entry(form_inner, width=30, font=('Segoe UI', 10), relief='solid', bd=2)
+    e_telefone.grid(row=row, column=3, sticky=EW, padx=10, pady=5)
+    row += 1
+
+    # Linha 7: Atividade Principal e Data de Abertura
+    Label(form_inner, text="Atividade Principal", font=('Segoe UI', 10, 'bold'), bg=co1, fg=co0).grid(row=row, column=0, sticky=W, pady=5)
+    e_atividade_principal = Entry(form_inner, width=30, font=('Segoe UI', 10), relief='solid', bd=2)
+    e_atividade_principal.grid(row=row, column=1, sticky=EW, padx=10, pady=5)
+
+    Label(form_inner, text="Data de Abertura", font=('Segoe UI', 10, 'bold'), bg=co1, fg=co0).grid(row=row, column=2, sticky=W, pady=5)
+    e_data_abertura = Entry(form_inner, width=30, font=('Segoe UI', 10), relief='solid', bd=2)
+    e_data_abertura.grid(row=row, column=3, sticky=EW, padx=10, pady=5)
+    row += 1
+
+    # Linha 8: Situação
+    Label(form_inner, text="Situação", font=('Segoe UI', 10, 'bold'), bg=co1, fg=co0).grid(row=row, column=0, sticky=W, pady=5)
+    combo_situacao = ttk.Combobox(form_inner, width=15, values=["Ativa", "Inativa", "Suspensa", "Baixada"], font=('Segoe UI', 10))
+    combo_situacao.grid(row=row, column=1, sticky=W, padx=10, pady=5)
+    row += 1
+
+    # Separador
+    separator = Frame(form_inner, bg=co6, height=2)
+    separator.grid(row=row, column=0, columnspan=4, sticky=EW, pady=10)
+    row += 1
+
+    # Seção do Responsável
+    Label(form_inner, text="DADOS DO RESPONSÁVEL", font=('Segoe UI', 12, 'bold'), bg=co1, fg=co2).grid(row=row, column=0, columnspan=4, pady=10)
+    row += 1
+
+    # Linha 9: Responsável e Telefone do Responsável
+    Label(form_inner, text="Responsável", font=('Segoe UI', 10, 'bold'), bg=co1, fg=co0).grid(row=row, column=0, sticky=W, pady=5)
+    e_responsavel = Entry(form_inner, width=30, font=('Segoe UI', 10), relief='solid', bd=2)
+    e_responsavel.grid(row=row, column=1, sticky=EW, padx=10, pady=5)
+
+    Label(form_inner, text="Telefone do Responsável", font=('Segoe UI', 10, 'bold'), bg=co1, fg=co0).grid(row=row, column=2, sticky=W, pady=5)
+    e_telefone_responsavel = Entry(form_inner, width=30, font=('Segoe UI', 10), relief='solid', bd=2)
+    e_telefone_responsavel.grid(row=row, column=3, sticky=EW, padx=10, pady=5)
+    row += 1
+
+    # Linha 10: Email do Responsável
+    Label(form_inner, text="Email do Responsável", font=('Segoe UI', 10, 'bold'), bg=co1, fg=co0).grid(row=row, column=0, sticky=W, pady=5)
+    e_email_responsavel = Entry(form_inner, width=30, font=('Segoe UI', 10), relief='solid', bd=2)
+    e_email_responsavel.grid(row=row, column=1, sticky=EW, padx=10, pady=5)
+    row += 1
+    
+    # Botoes com design moderno
+    button_frame = Frame(form_inner, bg=co1)
+    button_frame.grid(row=row, column=0, columnspan=4, pady=20)
+    
+    # Tabela dados Empresas
+    table_frame = Frame(frame_data_display, bg=co1, relief="solid", bd=1)
+    table_frame.pack(fill=BOTH, expand=True, padx=10, pady=10)
+    
+    table_title = Frame(table_frame, bg=co8, height=40)
+    table_title.pack(fill=X)
+    table_title.pack_propagate(False)
+    
+    Label(table_title, text="Empresas Cadastradas", 
+          font=('Segoe UI', 14, 'bold'), bg=co8, fg=co1).pack(pady=10)
+
+    def mostrar_dados_empresas():
+        # Limpar tabela existente
+        for widget in table_frame.winfo_children():
+            if isinstance(widget, ttk.Treeview):
+                widget.destroy()
+        
+        # Cabeçalhos da tabela com todos os campos importantes
+        list_header = ['CNPJ', 'Razão Social', 'Nome Fantasia', 'Município', 'Telefone', 'Atividade Principal', 'Situação', 'Responsável']
+        df_list = ver_dados_empresas()
+
+        global tree_dados_empresas
+        
+        tree_frame = Frame(table_frame, bg=co1)
+        tree_frame.pack(fill=BOTH, expand=True, padx=10, pady=10)
+
+        tree_dados_empresas = ttk.Treeview(tree_frame, selectmode="extended", columns=list_header, show="headings", height=10)
+        
+        # Scrollbars
+        vsb = ttk.Scrollbar(tree_frame, orient="vertical", command=tree_dados_empresas.yview)
+        hsb = ttk.Scrollbar(tree_frame, orient="horizontal", command=tree_dados_empresas.xview)
+        tree_dados_empresas.configure(yscrollcommand=vsb.set, xscrollcommand=hsb.set)
+
+        tree_dados_empresas.grid(row=0, column=0, sticky='nsew')
+        vsb.grid(row=0, column=1, sticky='ns')
+        hsb.grid(row=1, column=0, sticky='ew')
+
+        tree_frame.grid_rowconfigure(0, weight=1)
+        tree_frame.grid_columnconfigure(0, weight=1)
+
+        # Configurar colunas com larguras otimizadas
+        widths = [120, 200, 150, 120, 120, 180, 100, 150]
+        for i, col in enumerate(list_header):
+            tree_dados_empresas.heading(col, text=col, anchor=W)
+            tree_dados_empresas.column(col, width=widths[i], anchor=W)
+
+        # Inserir dados com cores alternadas (mostrar apenas campos principais)
+        for i, item in enumerate(df_list):
+            # Exibir apenas os campos principais na tabela
+            item_display = [
+                item[0],  # CNPJ
+                item[1],  # Razão Social
+                item[2] if item[2] else "N/A",  # Nome Fantasia
+                item[9] if item[9] else "N/A",  # Município
+                item[10] if item[10] else "N/A",  # Telefone
+                item[11] if item[11] else "N/A",  # Atividade Principal
+                item[13] if item[13] else "N/A",  # Situação
+                item[14] if item[14] else "N/A"   # Responsável
+            ]
+            tag = 'evenrow' if i % 2 == 0 else 'oddrow'
+            tree_dados_empresas.insert('', 'end', values=item_display, tags=(tag,))
+        
+        # Configurar tags para cores alternadas
+        tree_dados_empresas.tag_configure('evenrow', background=co5)
+        tree_dados_empresas.tag_configure('oddrow', background=co1)
+        
+        # Adicionar evento de duplo clique para carregar dados no formulário
+        def on_item_double_click(event):
+            try:
+                selected_item = tree_dados_empresas.selection()[0]
+                cnpj_selecionado = tree_dados_empresas.item(selected_item, 'values')[0]
+                
+                # Buscar dados completos da empresa
+                resultado = buscar_empresa_por_cnpj(cnpj_selecionado)
+                if resultado:
+                    # Carregar dados nos campos do formulário
+                    e_cnpj.delete(0, END)
+                    e_cnpj.insert(0, resultado[0])
+                    e_razao_social.delete(0, END)
+                    e_razao_social.insert(0, resultado[1] if resultado[1] else "")
+                    e_nome_fantasia.delete(0, END)
+                    e_nome_fantasia.insert(0, resultado[2] if resultado[2] else "")
+                    e_endereco.delete(0, END)
+                    e_endereco.insert(0, resultado[3] if resultado[3] else "")
+                    e_complemento.delete(0, END)
+                    e_complemento.insert(0, resultado[4] if resultado[4] else "")
+                    e_cep.delete(0, END)
+                    e_cep.insert(0, resultado[5] if resultado[5] else "")
+                    e_email.delete(0, END)
+                    e_email.insert(0, resultado[6] if resultado[6] else "")
+                    e_bairro.delete(0, END)
+                    e_bairro.insert(0, resultado[7] if resultado[7] else "")
+                    combo_uf.set(resultado[8] if resultado[8] else "")
+                    e_municipio.delete(0, END)
+                    e_municipio.insert(0, resultado[9] if resultado[9] else "")
+                    e_telefone.delete(0, END)
+                    e_telefone.insert(0, resultado[10] if resultado[10] else "")
+                    e_atividade_principal.delete(0, END)
+                    e_atividade_principal.insert(0, resultado[11] if resultado[11] else "")
+                    e_data_abertura.delete(0, END)
+                    e_data_abertura.insert(0, resultado[12] if resultado[12] else "")
+                    combo_situacao.set(resultado[13] if resultado[13] else "")
+                    e_responsavel.delete(0, END)
+                    e_responsavel.insert(0, resultado[14] if resultado[14] else "")
+                    e_telefone_responsavel.delete(0, END)
+                    e_telefone_responsavel.insert(0, resultado[15] if resultado[15] else "")
+                    e_email_responsavel.delete(0, END)
+                    e_email_responsavel.insert(0, resultado[16] if resultado[16] else "")
+                
+            except IndexError:
+                pass
+        
+        tree_dados_empresas.bind('<Double-1>', on_item_double_click)
+
+    # Funcoes CRUD
+    def novo_cadastro_empresa():
+        cnpj = e_cnpj.get()
+        razao_social = e_razao_social.get()
+        nome_fantasia = e_nome_fantasia.get()
+        endereco = e_endereco.get()
+        complemento = e_complemento.get()
+        cep = e_cep.get()
+        email = e_email.get()
+        bairro = e_bairro.get()
+        uf = combo_uf.get()
+        municipio = e_municipio.get()
+        telefone = e_telefone.get()
+        atividade_principal = e_atividade_principal.get()
+        data_abertura = e_data_abertura.get()
+        situacao = combo_situacao.get()
+        responsavel = e_responsavel.get()
+        telefone_responsavel = e_telefone_responsavel.get()
+        email_responsavel = e_email_responsavel.get()
+        
+        lista = [cnpj, razao_social, nome_fantasia, endereco, complemento, cep, email, bairro, uf, municipio, telefone, atividade_principal, data_abertura, situacao, responsavel, telefone_responsavel, email_responsavel]
+
+        # Verificar campos obrigatórios
+        campos_obrigatorios = [cnpj, razao_social]
+        if any(campo == "" for campo in campos_obrigatorios):
+            messagebox.showerror('Erro', 'Preencha todos os campos obrigatórios (*)')
+            return
+            
+        try:
+            criar_empresa(lista)
+            messagebox.showinfo('Sucesso', 'Os dados foram inseridos com sucesso')
+            
+            # Limpar campos
+            for entry in [e_cnpj, e_razao_social, e_nome_fantasia, e_endereco, e_complemento, e_cep, e_email, e_bairro, e_municipio, e_telefone, e_atividade_principal, e_data_abertura, e_responsavel, e_telefone_responsavel, e_email_responsavel]:
+                entry.delete(0, END)
+            combo_uf.set("")
+            combo_situacao.set("")
+            
+            mostrar_dados_empresas()
+        except sqlite3.IntegrityError:
+            messagebox.showerror('Erro', 'CNPJ ja cadastrado!')
+
+    def atualizar_empresa_func():
+        try:
+            selected_item = tree_dados_empresas.selection()[0]
+            cnpj_selecionado = tree_dados_empresas.item(selected_item, 'values')[0]
+            
+            # Coletar todos os dados
+            dados = {
+                'razao_social': e_razao_social.get(),
+                'nome_fantasia': e_nome_fantasia.get(),
+                'endereco': e_endereco.get(),
+                'complemento': e_complemento.get(),
+                'cep': e_cep.get(),
+                'email': e_email.get(),
+                'bairro': e_bairro.get(),
+                'uf': combo_uf.get(),
+                'municipio': e_municipio.get(),
+                'telefone': e_telefone.get(),
+                'atividade_principal': e_atividade_principal.get(),
+                'data_abertura': e_data_abertura.get(),
+                'situacao': combo_situacao.get(),
+                'responsavel': e_responsavel.get(),
+                'telefone_responsavel': e_telefone_responsavel.get(),
+                'email_responsavel': e_email_responsavel.get()
+            }
+            
+            # Verificar campos obrigatórios
+            campos_obrigatorios = ['razao_social']
+            if any(dados[campo] == "" for campo in campos_obrigatorios):
+                messagebox.showerror('Erro', 'Preencha todos os campos obrigatórios (*)')
+                return
+                
+            atualizar_empresa(cnpj_selecionado, **dados)
+            
+            messagebox.showinfo('Sucesso', 'Dados atualizados com sucesso')
+            mostrar_dados_empresas()
+            
+        except IndexError:
+            messagebox.showerror('Erro', 'Selecione um item na tabela')
+
+    def deletar_empresa_func():
+        try:
+            selected_item = tree_dados_empresas.selection()[0]
+            cnpj_selecionado = tree_dados_empresas.item(selected_item, 'values')[0]
+            
+            resposta = messagebox.askyesno('Confirmacao', f'Deseja realmente excluir o registro do CNPJ {cnpj_selecionado}?')
+            if resposta:
+                excluir_empresa(cnpj_selecionado)
+                messagebox.showinfo('Sucesso', 'Registro excluido com sucesso')
+                mostrar_dados_empresas()
+                
+        except IndexError:
+            messagebox.showerror('Erro', 'Selecione um item na tabela')
+
+    # Criar botoes
+    btn_salvar = criar_botao_moderno(button_frame, "SALVAR", novo_cadastro_empresa, co3)
+    btn_salvar.pack(side=LEFT, padx=5)
+    
+    btn_atualizar = criar_botao_moderno(button_frame, "ATUALIZAR", atualizar_empresa_func, co2)
+    btn_atualizar.pack(side=LEFT, padx=5)
+    
+    btn_deletar = criar_botao_moderno(button_frame, "DELETAR", deletar_empresa_func, co4)
+    btn_deletar.pack(side=LEFT, padx=5)
+
+    mostrar_dados_empresas()
+
 #---- CONTROLE
 def control(i):
     if i == 'repis':
         repis()
     elif i == 'contador':
         contador()
+    elif i == 'empresas':
+        empresas()
     elif i == 'preenchimento':
         preenchimento_pdf()
     elif i == 'salvar':
