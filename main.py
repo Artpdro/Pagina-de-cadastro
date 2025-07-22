@@ -26,7 +26,7 @@ co9 = "#1ABC9C"  # Verde agua
 
 janela = Tk()
 janela.title("Sistema Avancado de Cadastro - REPIS e Contadores")
-janela.geometry("1200x800")
+janela.geometry("1400x900")
 janela.configure(background=co5)
 janela.resizable(width=FALSE, height=FALSE)
 
@@ -40,25 +40,25 @@ style.configure("Title.TLabel", font=('Segoe UI', 18, 'bold'), background=co2, f
 style.configure("Heading.TLabel", font=('Segoe UI', 14, 'bold'), background=co5, foreground=co0)
 
 # frames principais com design moderno
-frame_header = Frame(janela, width=1200, height=80, bg=co2)
+frame_header = Frame(janela, width=1400, height=80, bg=co2)
 frame_header.grid(row=0, column=0, pady=0, padx=0, sticky=NSEW)
 frame_header.grid_propagate(False)
 
 # Separador com gradiente visual
-separator1 = Frame(janela, width=1200, height=3, bg=co6)
+separator1 = Frame(janela, width=1400, height=3, bg=co6)
 separator1.grid(row=1, column=0, pady=0, padx=0, sticky=NSEW)
 
-frame_navigation = Frame(janela, width=1200, height=80, bg=co1)
+frame_navigation = Frame(janela, width=1400, height=80, bg=co1)
 frame_navigation.grid(row=2, column=0, pady=0, padx=0, sticky=NSEW)
 frame_navigation.grid_propagate(False)
 
-separator2 = Frame(janela, width=1200, height=2, bg=co5)
+separator2 = Frame(janela, width=1400, height=2, bg=co5)
 separator2.grid(row=3, column=0, pady=0, padx=0, sticky=NSEW)
 
-frame_content = Frame(janela, width=1200, height=350, bg=co1)
+frame_content = Frame(janela, width=1400, height=400, bg=co1)
 frame_content.grid(row=4, column=0, pady=10, padx=20, sticky=NSEW)
 
-frame_data_display = Frame(janela, width=1200, height=280, bg=co1)
+frame_data_display = Frame(janela, width=1400, height=320, bg=co1)
 frame_data_display.grid(row=5, column=0, pady=0, padx=20, sticky=NSEW)
 
 # Header com logo e titulo estilizado
@@ -103,6 +103,9 @@ def atualizar_navegacao():
     btn_contador = criar_botao_nav("Contador", lambda: control('contador'), aba_ativa.get() == "contador")
     btn_contador.pack(side=LEFT, padx=10, pady=20)
     
+    btn_preenchimento = criar_botao_nav("Preenchimento PDF", lambda: control('preenchimento'), aba_ativa.get() == "preenchimento")
+    btn_preenchimento.pack(side=LEFT, padx=10, pady=20)
+    
     btn_salvar = criar_botao_nav("Exportar", lambda: control('salvar'), aba_ativa.get() == "salvar")
     btn_salvar.pack(side=LEFT, padx=10, pady=20)
 
@@ -113,7 +116,7 @@ def criar_botao_moderno(parent, text, command, bg_color, width=12):
                 activebackground=bg_color, activeforeground=co1)
     return btn
 
-#---- REPIS com design moderno
+#---- REPIS com design moderno e novos campos
 def repis():
     # Limpar frames
     for widget in frame_content.winfo_children():
@@ -124,12 +127,28 @@ def repis():
     aba_ativa.set("repis")
     atualizar_navegacao()
     
-    # Container principal
+    # Container principal com scroll
     main_container = Frame(frame_content, bg=co1, relief="solid", bd=1)
     main_container.pack(fill=BOTH, expand=True, padx=10, pady=10)
     
+    # Canvas para scroll
+    canvas = Canvas(main_container, bg=co1)
+    scrollbar = Scrollbar(main_container, orient="vertical", command=canvas.yview)
+    scrollable_frame = Frame(canvas, bg=co1)
+    
+    scrollable_frame.bind(
+        "<Configure>",
+        lambda e: canvas.configure(scrollregion=canvas.bbox("all"))
+    )
+    
+    canvas.create_window((0, 0), window=scrollable_frame, anchor="nw")
+    canvas.configure(yscrollcommand=scrollbar.set)
+    
+    canvas.pack(side="left", fill="both", expand=True)
+    scrollbar.pack(side="right", fill="y")
+    
     # Titulo da secao
-    title_frame = Frame(main_container, bg=co2, height=50)
+    title_frame = Frame(scrollable_frame, bg=co2, height=50)
     title_frame.pack(fill=X, padx=5, pady=5)
     title_frame.pack_propagate(False)
     
@@ -138,7 +157,7 @@ def repis():
     section_title.pack(pady=12)
     
     # Frame de pesquisa estilizado
-    search_frame = LabelFrame(main_container, text="Pesquisa Rapida", 
+    search_frame = LabelFrame(scrollable_frame, text="Pesquisa Rapida", 
                              font=('Segoe UI', 12, 'bold'), bg=co1, fg=co0,
                              relief="solid", bd=1)
     search_frame.pack(fill=X, padx=10, pady=5)
@@ -155,14 +174,45 @@ def repis():
         if cnpj:
             resultado = buscar_repis_por_cnpj(cnpj)
             if resultado:
+                # Preencher todos os campos
                 e_cnpj.delete(0, END)
                 e_cnpj.insert(0, resultado[0])
-                e_email.delete(0, END)
-                e_email.insert(0, resultado[1] if resultado[1] else "")
+                e_razao_social.delete(0, END)
+                e_razao_social.insert(0, resultado[1] if resultado[1] else "")
+                e_nome_fantasia.delete(0, END)
+                e_nome_fantasia.insert(0, resultado[2] if resultado[2] else "")
                 e_endereco.delete(0, END)
-                e_endereco.insert(0, resultado[2] if resultado[2] else "")
-                combo_certificado.set(resultado[3] if resultado[3] else "")
-                combo_situacao.set(resultado[4] if resultado[4] else "")
+                e_endereco.insert(0, resultado[3] if resultado[3] else "")
+                e_complemento.delete(0, END)
+                e_complemento.insert(0, resultado[4] if resultado[4] else "")
+                e_cep.delete(0, END)
+                e_cep.insert(0, resultado[5] if resultado[5] else "")
+                e_email.delete(0, END)
+                e_email.insert(0, resultado[6] if resultado[6] else "")
+                e_bairro.delete(0, END)
+                e_bairro.insert(0, resultado[7] if resultado[7] else "")
+                combo_uf.set(resultado[8] if resultado[8] else "")
+                e_municipio.delete(0, END)
+                e_municipio.insert(0, resultado[9] if resultado[9] else "")
+                e_data_abertura.delete(0, END)
+                e_data_abertura.insert(0, resultado[10] if resultado[10] else "")
+                e_nome_solicitante.delete(0, END)
+                e_nome_solicitante.insert(0, resultado[11] if resultado[11] else "")
+                combo_solicitante_tipo.set(resultado[12] if resultado[12] else "")
+                e_telefone.delete(0, END)
+                e_telefone.insert(0, resultado[13] if resultado[13] else "")
+                e_email_solicitante.delete(0, END)
+                e_email_solicitante.insert(0, resultado[14] if resultado[14] else "")
+                e_cpf.delete(0, END)
+                e_cpf.insert(0, resultado[15] if resultado[15] else "")
+                e_rg.delete(0, END)
+                e_rg.insert(0, resultado[16] if resultado[16] else "")
+                e_contador.delete(0, END)
+                e_contador.insert(0, resultado[17] if resultado[17] else "")
+                e_telefone_contador.delete(0, END)
+                e_telefone_contador.insert(0, resultado[18] if resultado[18] else "")
+                e_email_contador.delete(0, END)
+                e_email_contador.insert(0, resultado[19] if resultado[19] else "")
                 messagebox.showinfo('Sucesso', 'Dados encontrados!')
             else:
                 messagebox.showwarning('Aviso', 'CNPJ nao encontrado!')
@@ -173,7 +223,7 @@ def repis():
     search_btn.grid(row=0, column=2, padx=10)
     
     # Frame do formulario com layout em grid moderno
-    form_frame = LabelFrame(main_container, text="Dados do Cadastro", 
+    form_frame = LabelFrame(scrollable_frame, text="Dados do Cadastro REPIS", 
                            font=('Segoe UI', 12, 'bold'), bg=co1, fg=co0,
                            relief="solid", bd=1)
     form_frame.pack(fill=BOTH, expand=True, padx=10, pady=5)
@@ -186,29 +236,131 @@ def repis():
     form_inner.columnconfigure(3, weight=1)
     
     # Campos do formulario com estilo moderno
-    Label(form_inner, text="CNPJ *", font=('Segoe UI', 10, 'bold'), bg=co1, fg=co0).grid(row=0, column=0, sticky=W, pady=5)
+    row = 0
+    
+    # Linha 1: CNPJ e Razão Social
+    Label(form_inner, text="CNPJ *", font=('Segoe UI', 10, 'bold'), bg=co1, fg=co0).grid(row=row, column=0, sticky=W, pady=5)
     e_cnpj = Entry(form_inner, width=30, font=('Segoe UI', 10), relief='solid', bd=2)
-    e_cnpj.grid(row=0, column=1, sticky=EW, padx=10, pady=5)
+    e_cnpj.grid(row=row, column=1, sticky=EW, padx=10, pady=5)
 
-    Label(form_inner, text="Email *", font=('Segoe UI', 10, 'bold'), bg=co1, fg=co0).grid(row=0, column=2, sticky=W, pady=5)
+    Label(form_inner, text="Razão Social *", font=('Segoe UI', 10, 'bold'), bg=co1, fg=co0).grid(row=row, column=2, sticky=W, pady=5)
+    e_razao_social = Entry(form_inner, width=30, font=('Segoe UI', 10), relief='solid', bd=2)
+    e_razao_social.grid(row=row, column=3, sticky=EW, padx=10, pady=5)
+    row += 1
+
+    # Linha 2: Nome Fantasia e E-mail
+    Label(form_inner, text="Nome Fantasia", font=('Segoe UI', 10, 'bold'), bg=co1, fg=co0).grid(row=row, column=0, sticky=W, pady=5)
+    e_nome_fantasia = Entry(form_inner, width=30, font=('Segoe UI', 10), relief='solid', bd=2)
+    e_nome_fantasia.grid(row=row, column=1, sticky=EW, padx=10, pady=5)
+
+    Label(form_inner, text="E-mail *", font=('Segoe UI', 10, 'bold'), bg=co1, fg=co0).grid(row=row, column=2, sticky=W, pady=5)
     e_email = Entry(form_inner, width=30, font=('Segoe UI', 10), relief='solid', bd=2)
-    e_email.grid(row=0, column=3, sticky=EW, padx=10, pady=5)
+    e_email.grid(row=row, column=3, sticky=EW, padx=10, pady=5)
+    row += 1
 
-    Label(form_inner, text="Endereco *", font=('Segoe UI', 10, 'bold'), bg=co1, fg=co0).grid(row=1, column=0, sticky=W, pady=5)
+    # Linha 3: Endereço
+    Label(form_inner, text="Endereço *", font=('Segoe UI', 10, 'bold'), bg=co1, fg=co0).grid(row=row, column=0, sticky=W, pady=5)
     e_endereco = Entry(form_inner, width=60, font=('Segoe UI', 10), relief='solid', bd=2)
-    e_endereco.grid(row=1, column=1, columnspan=3, sticky=EW, padx=10, pady=5)
+    e_endereco.grid(row=row, column=1, columnspan=3, sticky=EW, padx=10, pady=5)
+    row += 1
 
-    Label(form_inner, text="Possui Certificado *", font=('Segoe UI', 10, 'bold'), bg=co1, fg=co0).grid(row=2, column=0, sticky=W, pady=5)
-    combo_certificado = ttk.Combobox(form_inner, width=15, values=["Sim", "Nao"], font=('Segoe UI', 10))
-    combo_certificado.grid(row=2, column=1, sticky=W, padx=10, pady=5)
+    # Linha 4: Complemento e CEP
+    Label(form_inner, text="Complemento", font=('Segoe UI', 10, 'bold'), bg=co1, fg=co0).grid(row=row, column=0, sticky=W, pady=5)
+    e_complemento = Entry(form_inner, width=30, font=('Segoe UI', 10), relief='solid', bd=2)
+    e_complemento.grid(row=row, column=1, sticky=EW, padx=10, pady=5)
 
-    Label(form_inner, text="Situacao *", font=('Segoe UI', 10, 'bold'), bg=co1, fg=co0).grid(row=2, column=2, sticky=W, pady=5)
-    combo_situacao = ttk.Combobox(form_inner, width=15, values=["Em analise", "Aguardando", "Concluido"], font=('Segoe UI', 10))
-    combo_situacao.grid(row=2, column=3, sticky=W, padx=10, pady=5)
+    Label(form_inner, text="CEP *", font=('Segoe UI', 10, 'bold'), bg=co1, fg=co0).grid(row=row, column=2, sticky=W, pady=5)
+    e_cep = Entry(form_inner, width=30, font=('Segoe UI', 10), relief='solid', bd=2)
+    e_cep.grid(row=row, column=3, sticky=EW, padx=10, pady=5)
+    row += 1
+
+    # Linha 5: Bairro e UF
+    Label(form_inner, text="Bairro *", font=('Segoe UI', 10, 'bold'), bg=co1, fg=co0).grid(row=row, column=0, sticky=W, pady=5)
+    e_bairro = Entry(form_inner, width=30, font=('Segoe UI', 10), relief='solid', bd=2)
+    e_bairro.grid(row=row, column=1, sticky=EW, padx=10, pady=5)
+
+    Label(form_inner, text="UF *", font=('Segoe UI', 10, 'bold'), bg=co1, fg=co0).grid(row=row, column=2, sticky=W, pady=5)
+    combo_uf = ttk.Combobox(form_inner, width=15, values=["AC", "AL", "AP", "AM", "BA", "CE", "DF", "ES", "GO", "MA", "MT", "MS", "MG", "PA", "PB", "PR", "PE", "PI", "RJ", "RN", "RS", "RO", "RR", "SC", "SP", "SE", "TO"], font=('Segoe UI', 10))
+    combo_uf.grid(row=row, column=3, sticky=W, padx=10, pady=5)
+    row += 1
+
+    # Linha 6: Município e Data de Abertura
+    Label(form_inner, text="Município *", font=('Segoe UI', 10, 'bold'), bg=co1, fg=co0).grid(row=row, column=0, sticky=W, pady=5)
+    e_municipio = Entry(form_inner, width=30, font=('Segoe UI', 10), relief='solid', bd=2)
+    e_municipio.grid(row=row, column=1, sticky=EW, padx=10, pady=5)
+
+    Label(form_inner, text="Data de Abertura", font=('Segoe UI', 10, 'bold'), bg=co1, fg=co0).grid(row=row, column=2, sticky=W, pady=5)
+    e_data_abertura = Entry(form_inner, width=30, font=('Segoe UI', 10), relief='solid', bd=2)
+    e_data_abertura.grid(row=row, column=3, sticky=EW, padx=10, pady=5)
+    row += 1
+
+    # Separador
+    separator = Frame(form_inner, bg=co6, height=2)
+    separator.grid(row=row, column=0, columnspan=4, sticky=EW, pady=10)
+    row += 1
+
+    # Seção do Solicitante
+    Label(form_inner, text="DADOS DO SOLICITANTE", font=('Segoe UI', 12, 'bold'), bg=co1, fg=co2).grid(row=row, column=0, columnspan=4, pady=10)
+    row += 1
+
+    # Linha 7: Nome do Solicitante e Tipo
+    Label(form_inner, text="Nome do Solicitante *", font=('Segoe UI', 10, 'bold'), bg=co1, fg=co0).grid(row=row, column=0, sticky=W, pady=5)
+    e_nome_solicitante = Entry(form_inner, width=30, font=('Segoe UI', 10), relief='solid', bd=2)
+    e_nome_solicitante.grid(row=row, column=1, sticky=EW, padx=10, pady=5)
+
+    Label(form_inner, text="Solicitante é *", font=('Segoe UI', 10, 'bold'), bg=co1, fg=co0).grid(row=row, column=2, sticky=W, pady=5)
+    combo_solicitante_tipo = ttk.Combobox(form_inner, width=15, values=["Sócio", "Contador"], font=('Segoe UI', 10))
+    combo_solicitante_tipo.grid(row=row, column=3, sticky=W, padx=10, pady=5)
+    row += 1
+
+    # Linha 8: Telefone e Email do Solicitante
+    Label(form_inner, text="Telefone *", font=('Segoe UI', 10, 'bold'), bg=co1, fg=co0).grid(row=row, column=0, sticky=W, pady=5)
+    e_telefone = Entry(form_inner, width=30, font=('Segoe UI', 10), relief='solid', bd=2)
+    e_telefone.grid(row=row, column=1, sticky=EW, padx=10, pady=5)
+
+    Label(form_inner, text="Email do Solicitante", font=('Segoe UI', 10, 'bold'), bg=co1, fg=co0).grid(row=row, column=2, sticky=W, pady=5)
+    e_email_solicitante = Entry(form_inner, width=30, font=('Segoe UI', 10), relief='solid', bd=2)
+    e_email_solicitante.grid(row=row, column=3, sticky=EW, padx=10, pady=5)
+    row += 1
+
+    # Linha 9: CPF e RG
+    Label(form_inner, text="CPF *", font=('Segoe UI', 10, 'bold'), bg=co1, fg=co0).grid(row=row, column=0, sticky=W, pady=5)
+    e_cpf = Entry(form_inner, width=30, font=('Segoe UI', 10), relief='solid', bd=2)
+    e_cpf.grid(row=row, column=1, sticky=EW, padx=10, pady=5)
+
+    Label(form_inner, text="RG", font=('Segoe UI', 10, 'bold'), bg=co1, fg=co0).grid(row=row, column=2, sticky=W, pady=5)
+    e_rg = Entry(form_inner, width=30, font=('Segoe UI', 10), relief='solid', bd=2)
+    e_rg.grid(row=row, column=3, sticky=EW, padx=10, pady=5)
+    row += 1
+
+    # Separador
+    separator2 = Frame(form_inner, bg=co6, height=2)
+    separator2.grid(row=row, column=0, columnspan=4, sticky=EW, pady=10)
+    row += 1
+
+    # Seção do Contador
+    Label(form_inner, text="DADOS DO CONTADOR", font=('Segoe UI', 12, 'bold'), bg=co1, fg=co2).grid(row=row, column=0, columnspan=4, pady=10)
+    row += 1
+
+    # Linha 10: Contador e Telefone do Contador
+    Label(form_inner, text="Contador", font=('Segoe UI', 10, 'bold'), bg=co1, fg=co0).grid(row=row, column=0, sticky=W, pady=5)
+    e_contador = Entry(form_inner, width=30, font=('Segoe UI', 10), relief='solid', bd=2)
+    e_contador.grid(row=row, column=1, sticky=EW, padx=10, pady=5)
+
+    Label(form_inner, text="Telefone do Contador", font=('Segoe UI', 10, 'bold'), bg=co1, fg=co0).grid(row=row, column=2, sticky=W, pady=5)
+    e_telefone_contador = Entry(form_inner, width=30, font=('Segoe UI', 10), relief='solid', bd=2)
+    e_telefone_contador.grid(row=row, column=3, sticky=EW, padx=10, pady=5)
+    row += 1
+
+    # Linha 11: Email do Contador
+    Label(form_inner, text="Email do Contador", font=('Segoe UI', 10, 'bold'), bg=co1, fg=co0).grid(row=row, column=0, sticky=W, pady=5)
+    e_email_contador = Entry(form_inner, width=30, font=('Segoe UI', 10), relief='solid', bd=2)
+    e_email_contador.grid(row=row, column=1, sticky=EW, padx=10, pady=5)
+    row += 1
     
     # Botoes com design moderno
     button_frame = Frame(form_inner, bg=co1)
-    button_frame.grid(row=3, column=0, columnspan=4, pady=20)
+    button_frame.grid(row=row, column=0, columnspan=4, pady=20)
     
     # Tabela dados REPIS
     table_frame = Frame(frame_data_display, bg=co1, relief="solid", bd=1)
@@ -227,7 +379,7 @@ def repis():
             if isinstance(widget, ttk.Treeview):
                 widget.destroy()
         
-        list_header = ['CNPJ', 'Email', 'Endereco', 'Possui Certificado', 'Situacao']
+        list_header = ['CNPJ', 'Razão Social', 'Nome Fantasia', 'Endereço', 'CEP', 'E-mail', 'Município', 'Nome Solicitante', 'Tipo Solicitante']
         df_list = ver_dados_repis()
 
         global tree_dados_repis
@@ -250,15 +402,17 @@ def repis():
         tree_frame.grid_columnconfigure(0, weight=1)
 
         # Configurar colunas
-        widths = [150, 200, 300, 120, 120]
+        widths = [120, 150, 120, 200, 80, 150, 120, 150, 100]
         for i, col in enumerate(list_header):
             tree_dados_repis.heading(col, text=col, anchor=W)
             tree_dados_repis.column(col, width=widths[i], anchor=W)
 
-        # Inserir dados com cores alternadas
+        # Inserir dados com cores alternadas (mostrar apenas campos principais)
         for i, item in enumerate(df_list):
+            # Mostrar apenas os campos principais na tabela
+            item_display = [item[0], item[1], item[2], item[3], item[5], item[6], item[9], item[11], item[12]]
             tag = 'evenrow' if i % 2 == 0 else 'oddrow'
-            tree_dados_repis.insert('', 'end', values=item, tags=(tag,))
+            tree_dados_repis.insert('', 'end', values=item_display, tags=(tag,))
         
         # Configurar tags para cores alternadas
         tree_dados_repis.tag_configure('evenrow', background=co5)
@@ -267,28 +421,43 @@ def repis():
     # Funcao novo cadastro REPIS
     def novo_cadastro_repis():
         cnpj = e_cnpj.get()
-        email = e_email.get()
+        razao_social = e_razao_social.get()
+        nome_fantasia = e_nome_fantasia.get()
         endereco = e_endereco.get()
-        possui_certificado = combo_certificado.get()
-        situacao = combo_situacao.get()
+        complemento = e_complemento.get()
+        cep = e_cep.get()
+        email = e_email.get()
+        bairro = e_bairro.get()
+        uf = combo_uf.get()
+        municipio = e_municipio.get()
+        data_abertura = e_data_abertura.get()
+        nome_solicitante = e_nome_solicitante.get()
+        solicitante_tipo = combo_solicitante_tipo.get()
+        telefone = e_telefone.get()
+        email_solicitante = e_email_solicitante.get()
+        cpf = e_cpf.get()
+        rg = e_rg.get()
+        contador = e_contador.get()
+        telefone_contador = e_telefone_contador.get()
+        email_contador = e_email_contador.get()
         
-        lista = [cnpj, email, endereco, possui_certificado, situacao]
+        lista = [cnpj, razao_social, nome_fantasia, endereco, complemento, cep, email, bairro, uf, municipio, data_abertura, nome_solicitante, solicitante_tipo, telefone, email_solicitante, cpf, rg, contador, telefone_contador, email_contador]
 
-        for i in lista:
-            if i == "":
-                messagebox.showerror('Erro', 'Preencha todos os campos')
-                return
+        # Verificar campos obrigatórios
+        campos_obrigatorios = [cnpj, razao_social, endereco, cep, email, bairro, uf, municipio, nome_solicitante, solicitante_tipo, telefone, cpf]
+        if any(campo == "" for campo in campos_obrigatorios):
+            messagebox.showerror('Erro', 'Preencha todos os campos obrigatórios (*)')
+            return
             
         try:
             criar_repis(lista)
             messagebox.showinfo('Sucesso', 'Os dados foram inseridos com sucesso')
             
             # Limpar campos
-            e_cnpj.delete(0,END)
-            e_email.delete(0,END)
-            e_endereco.delete(0,END)
-            combo_certificado.set("")
-            combo_situacao.set("")
+            for entry in [e_cnpj, e_razao_social, e_nome_fantasia, e_endereco, e_complemento, e_cep, e_email, e_bairro, e_municipio, e_data_abertura, e_nome_solicitante, e_telefone, e_email_solicitante, e_cpf, e_rg, e_contador, e_telefone_contador, e_email_contador]:
+                entry.delete(0, END)
+            combo_uf.set("")
+            combo_solicitante_tipo.set("")
             
             mostrar_dados_repis()
         except sqlite3.IntegrityError:
@@ -300,18 +469,36 @@ def repis():
             selected_item = tree_dados_repis.selection()[0]
             cnpj_selecionado = tree_dados_repis.item(selected_item, 'values')[0]
             
-            cnpj = e_cnpj.get()
-            email = e_email.get()
-            endereco = e_endereco.get()
-            possui_certificado = combo_certificado.get()
-            situacao = combo_situacao.get()
+            # Coletar todos os dados
+            dados = {
+                'razao_social': e_razao_social.get(),
+                'nome_fantasia': e_nome_fantasia.get(),
+                'endereco': e_endereco.get(),
+                'complemento': e_complemento.get(),
+                'cep': e_cep.get(),
+                'email': e_email.get(),
+                'bairro': e_bairro.get(),
+                'uf': combo_uf.get(),
+                'municipio': e_municipio.get(),
+                'data_abertura': e_data_abertura.get(),
+                'nome_solicitante': e_nome_solicitante.get(),
+                'solicitante_tipo': combo_solicitante_tipo.get(),
+                'telefone': e_telefone.get(),
+                'email_solicitante': e_email_solicitante.get(),
+                'cpf': e_cpf.get(),
+                'rg': e_rg.get(),
+                'contador': e_contador.get(),
+                'telefone_contador': e_telefone_contador.get(),
+                'email_contador': e_email_contador.get()
+            }
             
-            if not all([cnpj, email, endereco, possui_certificado, situacao]):
-                messagebox.showerror('Erro', 'Preencha todos os campos')
+            # Verificar campos obrigatórios
+            campos_obrigatorios = ['razao_social', 'endereco', 'cep', 'email', 'bairro', 'uf', 'municipio', 'nome_solicitante', 'solicitante_tipo', 'telefone', 'cpf']
+            if any(dados[campo] == "" for campo in campos_obrigatorios):
+                messagebox.showerror('Erro', 'Preencha todos os campos obrigatórios (*)')
                 return
                 
-            atualizar_repis(cnpj_selecionado, email=email, endereco=endereco, 
-                          possui_certificado=possui_certificado, situacao=situacao)
+            atualizar_repis(cnpj_selecionado, **dados)
             
             messagebox.showinfo('Sucesso', 'Dados atualizados com sucesso')
             mostrar_dados_repis()
@@ -346,7 +533,7 @@ def repis():
 
     mostrar_dados_repis()
 
-#---- CONTADOR com design moderno
+#---- CONTADOR com design moderno e novos campos
 def contador():
     # Limpar frames
     for widget in frame_content.winfo_children():
@@ -400,6 +587,15 @@ def contador():
                 e_contato.insert(0, resultado[4])
                 combo_tipo_pessoa.set(resultado[5] if resultado[5] else "")
                 combo_tipo_telefone.set(resultado[6] if resultado[6] else "")
+                e_nome_solicitante.delete(0, END)
+                e_nome_solicitante.insert(0, resultado[7] if resultado[7] else "")
+                combo_solicitante_tipo.set(resultado[8] if resultado[8] else "")
+                e_telefone_solicitante.delete(0, END)
+                e_telefone_solicitante.insert(0, resultado[9] if resultado[9] else "")
+                e_cpf_solicitante.delete(0, END)
+                e_cpf_solicitante.insert(0, resultado[10] if resultado[10] else "")
+                e_rg_solicitante.delete(0, END)
+                e_rg_solicitante.insert(0, resultado[11] if resultado[11] else "")
                 messagebox.showinfo('Sucesso', 'Dados encontrados!')
             else:
                 messagebox.showwarning('Aviso', 'Registro nao encontrado!')
@@ -423,37 +619,75 @@ def contador():
     form_inner.columnconfigure(3, weight=1)
     
     # Campos do formulario
-    Label(form_inner, text="CNPJ *", font=('Segoe UI', 10, 'bold'), bg=co1, fg=co0).grid(row=0, column=0, sticky=W, pady=5)
+    row = 0
+    
+    Label(form_inner, text="CNPJ *", font=('Segoe UI', 10, 'bold'), bg=co1, fg=co0).grid(row=row, column=0, sticky=W, pady=5)
     e_cnpj = Entry(form_inner, width=30, font=('Segoe UI', 10), relief='solid', bd=2)
-    e_cnpj.grid(row=0, column=1, sticky=EW, padx=10, pady=5)
+    e_cnpj.grid(row=row, column=1, sticky=EW, padx=10, pady=5)
 
-    Label(form_inner, text="Nome *", font=('Segoe UI', 10, 'bold'), bg=co1, fg=co0).grid(row=0, column=2, sticky=W, pady=5)
+    Label(form_inner, text="Nome *", font=('Segoe UI', 10, 'bold'), bg=co1, fg=co0).grid(row=row, column=2, sticky=W, pady=5)
     e_nome = Entry(form_inner, width=30, font=('Segoe UI', 10), relief='solid', bd=2)
-    e_nome.grid(row=0, column=3, sticky=EW, padx=10, pady=5)
+    e_nome.grid(row=row, column=3, sticky=EW, padx=10, pady=5)
+    row += 1
 
-    Label(form_inner, text="Municipio *", font=('Segoe UI', 10, 'bold'), bg=co1, fg=co0).grid(row=1, column=0, sticky=W, pady=5)
+    Label(form_inner, text="Municipio *", font=('Segoe UI', 10, 'bold'), bg=co1, fg=co0).grid(row=row, column=0, sticky=W, pady=5)
     e_municipio = Entry(form_inner, width=30, font=('Segoe UI', 10), relief='solid', bd=2)
-    e_municipio.grid(row=1, column=1, sticky=EW, padx=10, pady=5)
+    e_municipio.grid(row=row, column=1, sticky=EW, padx=10, pady=5)
 
-    Label(form_inner, text="Socio *", font=('Segoe UI', 10, 'bold'), bg=co1, fg=co0).grid(row=1, column=2, sticky=W, pady=5)
+    Label(form_inner, text="Socio *", font=('Segoe UI', 10, 'bold'), bg=co1, fg=co0).grid(row=row, column=2, sticky=W, pady=5)
     e_socio = Entry(form_inner, width=30, font=('Segoe UI', 10), relief='solid', bd=2)
-    e_socio.grid(row=1, column=3, sticky=EW, padx=10, pady=5)
+    e_socio.grid(row=row, column=3, sticky=EW, padx=10, pady=5)
+    row += 1
 
-    Label(form_inner, text="Contato *", font=('Segoe UI', 10, 'bold'), bg=co1, fg=co0).grid(row=2, column=0, sticky=W, pady=5)
+    Label(form_inner, text="Contato *", font=('Segoe UI', 10, 'bold'), bg=co1, fg=co0).grid(row=row, column=0, sticky=W, pady=5)
     e_contato = Entry(form_inner, width=30, font=('Segoe UI', 10), relief='solid', bd=2)
-    e_contato.grid(row=2, column=1, sticky=EW, padx=10, pady=5)
+    e_contato.grid(row=row, column=1, sticky=EW, padx=10, pady=5)
 
-    Label(form_inner, text="Tipo de Pessoa *", font=('Segoe UI', 10, 'bold'), bg=co1, fg=co0).grid(row=3, column=0, sticky=W, pady=5)
+    Label(form_inner, text="Tipo de Pessoa *", font=('Segoe UI', 10, 'bold'), bg=co1, fg=co0).grid(row=row, column=2, sticky=W, pady=5)
     combo_tipo_pessoa = ttk.Combobox(form_inner, width=15, values=["Pessoa Fisica", "Empresa"], font=('Segoe UI', 10))
-    combo_tipo_pessoa.grid(row=3, column=1, sticky=W, padx=10, pady=5)
+    combo_tipo_pessoa.grid(row=row, column=3, sticky=W, padx=10, pady=5)
+    row += 1
 
-    Label(form_inner, text="Tipo de Telefone *", font=('Segoe UI', 10, 'bold'), bg=co1, fg=co0).grid(row=3, column=2, sticky=W, pady=5)
+    Label(form_inner, text="Tipo de Telefone *", font=('Segoe UI', 10, 'bold'), bg=co1, fg=co0).grid(row=row, column=0, sticky=W, pady=5)
     combo_tipo_telefone = ttk.Combobox(form_inner, width=15, values=["Gerente", "Responsavel"], font=('Segoe UI', 10))
-    combo_tipo_telefone.grid(row=3, column=3, sticky=W, padx=10, pady=5)
+    combo_tipo_telefone.grid(row=row, column=1, sticky=W, padx=10, pady=5)
+    row += 1
+
+    # Separador
+    separator = Frame(form_inner, bg=co6, height=2)
+    separator.grid(row=row, column=0, columnspan=4, sticky=EW, pady=10)
+    row += 1
+
+    # Seção do Solicitante
+    Label(form_inner, text="DADOS DO SOLICITANTE", font=('Segoe UI', 12, 'bold'), bg=co1, fg=co2).grid(row=row, column=0, columnspan=4, pady=10)
+    row += 1
+
+    Label(form_inner, text="Nome do Solicitante", font=('Segoe UI', 10, 'bold'), bg=co1, fg=co0).grid(row=row, column=0, sticky=W, pady=5)
+    e_nome_solicitante = Entry(form_inner, width=30, font=('Segoe UI', 10), relief='solid', bd=2)
+    e_nome_solicitante.grid(row=row, column=1, sticky=EW, padx=10, pady=5)
+
+    Label(form_inner, text="Quem solicitou", font=('Segoe UI', 10, 'bold'), bg=co1, fg=co0).grid(row=row, column=2, sticky=W, pady=5)
+    combo_solicitante_tipo = ttk.Combobox(form_inner, width=15, values=["Sócio", "Contador"], font=('Segoe UI', 10))
+    combo_solicitante_tipo.grid(row=row, column=3, sticky=W, padx=10, pady=5)
+    row += 1
+
+    Label(form_inner, text="Telefone", font=('Segoe UI', 10, 'bold'), bg=co1, fg=co0).grid(row=row, column=0, sticky=W, pady=5)
+    e_telefone_solicitante = Entry(form_inner, width=30, font=('Segoe UI', 10), relief='solid', bd=2)
+    e_telefone_solicitante.grid(row=row, column=1, sticky=EW, padx=10, pady=5)
+
+    Label(form_inner, text="CPF", font=('Segoe UI', 10, 'bold'), bg=co1, fg=co0).grid(row=row, column=2, sticky=W, pady=5)
+    e_cpf_solicitante = Entry(form_inner, width=30, font=('Segoe UI', 10), relief='solid', bd=2)
+    e_cpf_solicitante.grid(row=row, column=3, sticky=EW, padx=10, pady=5)
+    row += 1
+
+    Label(form_inner, text="RG", font=('Segoe UI', 10, 'bold'), bg=co1, fg=co0).grid(row=row, column=0, sticky=W, pady=5)
+    e_rg_solicitante = Entry(form_inner, width=30, font=('Segoe UI', 10), relief='solid', bd=2)
+    e_rg_solicitante.grid(row=row, column=1, sticky=EW, padx=10, pady=5)
+    row += 1
     
     # Botoes
     button_frame = Frame(form_inner, bg=co1)
-    button_frame.grid(row=4, column=0, columnspan=4, pady=20)
+    button_frame.grid(row=row, column=0, columnspan=4, pady=20)
     
     # Tabela dados Contadores
     table_frame = Frame(frame_data_display, bg=co1, relief="solid", bd=1)
@@ -472,7 +706,7 @@ def contador():
             if isinstance(widget, ttk.Treeview):
                 widget.destroy()
         
-        list_header = ['CNPJ', 'Nome', 'Municipio', 'Socio', 'Contato', 'Tipo Pessoa', 'Tipo Telefone']
+        list_header = ['CNPJ', 'Nome', 'Município', 'Sócio', 'Contato', 'Tipo Pessoa', 'Nome Solicitante', 'Tipo Solicitante']
         df_list = ver_dados_contadores()
 
         global tree_dados_contadores
@@ -495,15 +729,17 @@ def contador():
         tree_frame.grid_columnconfigure(0, weight=1)
 
         # Configurar colunas
-        widths = [120, 150, 120, 120, 120, 100, 100]
+        widths = [120, 150, 120, 120, 120, 100, 150, 100]
         for i, col in enumerate(list_header):
             tree_dados_contadores.heading(col, text=col, anchor=W)
             tree_dados_contadores.column(col, width=widths[i], anchor=W)
 
-        # Inserir dados com cores alternadas
+        # Inserir dados com cores alternadas (mostrar apenas campos principais)
         for i, item in enumerate(df_list):
+            # Mostrar apenas os campos principais na tabela
+            item_display = [item[0], item[1], item[2], item[3], item[4], item[5], item[7], item[8]]
             tag = 'evenrow' if i % 2 == 0 else 'oddrow'
-            tree_dados_contadores.insert('', 'end', values=item, tags=(tag,))
+            tree_dados_contadores.insert('', 'end', values=item_display, tags=(tag,))
         
         # Configurar tags para cores alternadas
         tree_dados_contadores.tag_configure('evenrow', background=co5)
@@ -518,26 +754,30 @@ def contador():
         contato = e_contato.get()
         tipo_pessoa = combo_tipo_pessoa.get()
         tipo_telefone = combo_tipo_telefone.get()
+        nome_solicitante = e_nome_solicitante.get()
+        solicitante_tipo = combo_solicitante_tipo.get()
+        telefone_solicitante = e_telefone_solicitante.get()
+        cpf_solicitante = e_cpf_solicitante.get()
+        rg_solicitante = e_rg_solicitante.get()
         
-        lista = [cnpj, nome, municipio, socio, contato, tipo_pessoa, tipo_telefone]
+        lista = [cnpj, nome, municipio, socio, contato, tipo_pessoa, tipo_telefone, nome_solicitante, solicitante_tipo, telefone_solicitante, cpf_solicitante, rg_solicitante]
 
-        for i in lista:
-            if i == "":
-                messagebox.showerror('Erro', 'Preencha todos os campos')
-                return
+        # Verificar campos obrigatórios
+        campos_obrigatorios = [cnpj, nome, municipio, socio, contato, tipo_pessoa, tipo_telefone]
+        if any(campo == "" for campo in campos_obrigatorios):
+            messagebox.showerror('Erro', 'Preencha todos os campos obrigatórios (*)')
+            return
             
         try:
             criar_contador_novo(lista)
             messagebox.showinfo('Sucesso', 'Os dados foram inseridos com sucesso')
 
             # Limpar campos
-            e_cnpj.delete(0,END)
-            e_nome.delete(0,END)
-            e_municipio.delete(0,END)
-            e_socio.delete(0,END)
-            e_contato.delete(0,END)
+            for entry in [e_cnpj, e_nome, e_municipio, e_socio, e_contato, e_nome_solicitante, e_telefone_solicitante, e_cpf_solicitante, e_rg_solicitante]:
+                entry.delete(0, END)
             combo_tipo_pessoa.set("")
             combo_tipo_telefone.set("")
+            combo_solicitante_tipo.set("")
 
             mostrar_dados_contadores()
         except sqlite3.IntegrityError:
@@ -548,21 +788,27 @@ def contador():
             selected_item = tree_dados_contadores.selection()[0]
             cnpj_selecionado = tree_dados_contadores.item(selected_item, 'values')[0]
             
-            cnpj = e_cnpj.get()
-            nome = e_nome.get()
-            municipio = e_municipio.get()
-            socio = e_socio.get()
-            contato = e_contato.get()
-            tipo_pessoa = combo_tipo_pessoa.get()
-            tipo_telefone = combo_tipo_telefone.get()
+            dados = {
+                'nome': e_nome.get(),
+                'municipio': e_municipio.get(),
+                'socio': e_socio.get(),
+                'contato': e_contato.get(),
+                'tipo_pessoa': combo_tipo_pessoa.get(),
+                'tipo_telefone': combo_tipo_telefone.get(),
+                'nome_solicitante': e_nome_solicitante.get(),
+                'solicitante_tipo': combo_solicitante_tipo.get(),
+                'telefone_solicitante': e_telefone_solicitante.get(),
+                'cpf_solicitante': e_cpf_solicitante.get(),
+                'rg_solicitante': e_rg_solicitante.get()
+            }
             
-            if not all([cnpj, nome, municipio, socio, contato, tipo_pessoa, tipo_telefone]):
-                messagebox.showerror('Erro', 'Preencha todos os campos')
+            # Verificar campos obrigatórios
+            campos_obrigatorios = ['nome', 'municipio', 'socio', 'contato', 'tipo_pessoa', 'tipo_telefone']
+            if any(dados[campo] == "" for campo in campos_obrigatorios):
+                messagebox.showerror('Erro', 'Preencha todos os campos obrigatórios (*)')
                 return
                 
-            atualizar_contador_novo(cnpj_selecionado, nome=nome, municipio=municipio, 
-                                  socio=socio, contato=contato, tipo_pessoa=tipo_pessoa, 
-                                  tipo_telefone=tipo_telefone)
+            atualizar_contador_novo(cnpj_selecionado, **dados)
             
             messagebox.showinfo('Sucesso', 'Dados atualizados com sucesso')
             mostrar_dados_contadores()
@@ -596,7 +842,206 @@ def contador():
 
     mostrar_dados_contadores()
 
-#----- EXPORTAR com design moderno
+#---- PREENCHIMENTO AUTOMÁTICO DE PDF
+def preenchimento_pdf():
+    # Limpar frames
+    for widget in frame_content.winfo_children():
+        widget.destroy()
+    for widget in frame_data_display.winfo_children():
+        widget.destroy()
+    
+    aba_ativa.set("preenchimento")
+    atualizar_navegacao()
+    
+    # Container principal
+    main_container = Frame(frame_content, bg=co1, relief="solid", bd=1)
+    main_container.pack(fill=BOTH, expand=True, padx=10, pady=10)
+    
+    # Titulo da secao
+    title_frame = Frame(main_container, bg=co8, height=50)
+    title_frame.pack(fill=X, padx=5, pady=5)
+    title_frame.pack_propagate(False)
+    
+    section_title = Label(title_frame, text="Preenchimento Automático de PDF REPIS", 
+                         font=('Segoe UI', 16, 'bold'), bg=co8, fg=co1)
+    section_title.pack(pady=12)
+    
+    # Frame de seleção
+    selection_frame = LabelFrame(main_container, text="Selecionar Dados para Preenchimento", 
+                                font=('Segoe UI', 12, 'bold'), bg=co1, fg=co0,
+                                relief="solid", bd=1)
+    selection_frame.pack(fill=X, padx=10, pady=5)
+    
+    selection_inner = Frame(selection_frame, bg=co1)
+    selection_inner.pack(fill=X, padx=10, pady=10)
+    
+    # Seleção de CNPJ REPIS
+    Label(selection_inner, text="Selecionar CNPJ REPIS:", font=('Segoe UI', 10, 'bold'), bg=co1, fg=co0).grid(row=0, column=0, sticky=W, padx=5, pady=5)
+    
+    # Buscar todos os CNPJs do REPIS
+    dados_repis = ver_dados_repis()
+    cnpjs_repis = [item[0] for item in dados_repis]
+    
+    combo_cnpj_repis = ttk.Combobox(selection_inner, width=25, values=cnpjs_repis, font=('Segoe UI', 10))
+    combo_cnpj_repis.grid(row=0, column=1, padx=10, pady=5)
+    
+    # Seleção de CNPJ Contador (opcional)
+    Label(selection_inner, text="Selecionar CNPJ Contador (opcional):", font=('Segoe UI', 10, 'bold'), bg=co1, fg=co0).grid(row=1, column=0, sticky=W, padx=5, pady=5)
+    
+    # Buscar todos os CNPJs dos Contadores
+    dados_contadores = ver_dados_contadores()
+    cnpjs_contadores = [item[0] for item in dados_contadores]
+    
+    combo_cnpj_contador = ttk.Combobox(selection_inner, width=25, values=cnpjs_contadores, font=('Segoe UI', 10))
+    combo_cnpj_contador.grid(row=1, column=1, padx=10, pady=5)
+    
+    # Frame de preview
+    preview_frame = LabelFrame(main_container, text="Preview dos Dados", 
+                              font=('Segoe UI', 12, 'bold'), bg=co1, fg=co0,
+                              relief="solid", bd=1)
+    preview_frame.pack(fill=BOTH, expand=True, padx=10, pady=5)
+    
+    preview_text = Text(preview_frame, height=15, width=80, font=('Segoe UI', 10), bg=co5, fg=co0)
+    preview_text.pack(fill=BOTH, expand=True, padx=10, pady=10)
+    
+    def carregar_preview():
+        cnpj_repis = combo_cnpj_repis.get()
+        cnpj_contador = combo_cnpj_contador.get()
+        
+        if not cnpj_repis:
+            messagebox.showerror('Erro', 'Selecione um CNPJ REPIS')
+            return
+        
+        # Buscar dados do REPIS
+        dados_repis = buscar_repis_por_cnpj(cnpj_repis)
+        dados_contador = None
+        
+        if cnpj_contador:
+            dados_contador = buscar_contador_por_cnpj_ou_nome(cnpj_contador)
+        
+        # Montar preview
+        preview_text.delete(1.0, END)
+        
+        if dados_repis:
+            preview_content = f"""DADOS REPIS SELECIONADOS:
+CNPJ: {dados_repis[0]}
+Razão Social: {dados_repis[1] or 'N/A'}
+Nome Fantasia: {dados_repis[2] or 'N/A'}
+Endereço: {dados_repis[3] or 'N/A'}
+CEP: {dados_repis[5] or 'N/A'}
+E-mail: {dados_repis[6] or 'N/A'}
+Bairro: {dados_repis[7] or 'N/A'}
+UF: {dados_repis[8] or 'N/A'}
+Município: {dados_repis[9] or 'N/A'}
+Data de Abertura: {dados_repis[10] or 'N/A'}
+Nome do Solicitante: {dados_repis[11] or 'N/A'}
+Tipo de Solicitante: {dados_repis[12] or 'N/A'}
+Telefone: {dados_repis[13] or 'N/A'}
+Email do Solicitante: {dados_repis[14] or 'N/A'}
+CPF: {dados_repis[15] or 'N/A'}
+RG: {dados_repis[16] or 'N/A'}
+Contador: {dados_repis[17] or 'N/A'}
+Telefone do Contador: {dados_repis[18] or 'N/A'}
+Email do Contador: {dados_repis[19] or 'N/A'}
+
+"""
+            
+            if dados_contador:
+                preview_content += f"""DADOS CONTADOR SELECIONADOS:
+CNPJ: {dados_contador[0]}
+Nome: {dados_contador[1] or 'N/A'}
+Município: {dados_contador[2] or 'N/A'}
+Sócio: {dados_contador[3] or 'N/A'}
+Contato: {dados_contador[4] or 'N/A'}
+Tipo de Pessoa: {dados_contador[5] or 'N/A'}
+Tipo de Telefone: {dados_contador[6] or 'N/A'}
+Nome do Solicitante: {dados_contador[7] or 'N/A'}
+Tipo de Solicitante: {dados_contador[8] or 'N/A'}
+Telefone do Solicitante: {dados_contador[9] or 'N/A'}
+CPF do Solicitante: {dados_contador[10] or 'N/A'}
+RG do Solicitante: {dados_contador[11] or 'N/A'}
+"""
+            
+            preview_text.insert(1.0, preview_content)
+        else:
+            preview_text.insert(1.0, "Dados não encontrados para o CNPJ selecionado.")
+    
+    def gerar_pdf_preenchido():
+        cnpj_repis = combo_cnpj_repis.get()
+        cnpj_contador = combo_cnpj_contador.get()
+        
+        if not cnpj_repis:
+            messagebox.showerror('Erro', 'Selecione um CNPJ REPIS')
+            return
+        
+        # Buscar dados
+        dados_repis_raw = buscar_repis_por_cnpj(cnpj_repis)
+        dados_contador_raw = None
+        
+        if cnpj_contador:
+            dados_contador_raw = buscar_contador_por_cnpj_ou_nome(cnpj_contador)
+        
+        if dados_repis_raw:
+            # Converter para dicionário
+            dados_repis = {
+                'cnpj': dados_repis_raw[0],
+                'razao_social': dados_repis_raw[1],
+                'nome_fantasia': dados_repis_raw[2],
+                'endereco': dados_repis_raw[3],
+                'complemento': dados_repis_raw[4],
+                'cep': dados_repis_raw[5],
+                'email': dados_repis_raw[6],
+                'bairro': dados_repis_raw[7],
+                'uf': dados_repis_raw[8],
+                'municipio': dados_repis_raw[9],
+                'data_abertura': dados_repis_raw[10],
+                'nome_solicitante': dados_repis_raw[11],
+                'solicitante_tipo': dados_repis_raw[12],
+                'telefone': dados_repis_raw[13],
+                'email_solicitante': dados_repis_raw[14],
+                'cpf': dados_repis_raw[15],
+                'rg': dados_repis_raw[16],
+                'contador': dados_repis_raw[17],
+                'telefone_contador': dados_repis_raw[18],
+                'email_contador': dados_repis_raw[19]
+            }
+            
+            dados_contador = None
+            if dados_contador_raw:
+                dados_contador = {
+                    'cnpj': dados_contador_raw[0],
+                    'nome': dados_contador_raw[1],
+                    'municipio': dados_contador_raw[2],
+                    'socio': dados_contador_raw[3],
+                    'contato': dados_contador_raw[4],
+                    'tipo_pessoa': dados_contador_raw[5],
+                    'tipo_telefone': dados_contador_raw[6],
+                    'nome_solicitante': dados_contador_raw[7],
+                    'solicitante_tipo': dados_contador_raw[8],
+                    'telefone_solicitante': dados_contador_raw[9],
+                    'cpf_solicitante': dados_contador_raw[10],
+                    'rg_solicitante': dados_contador_raw[11]
+                }
+            
+            # Gerar PDF preenchido
+            arquivo_gerado = preencher_pdf_repis(dados_repis, dados_contador)
+            
+            if arquivo_gerado:
+                messagebox.showinfo('Sucesso', f'PDF preenchido gerado: {arquivo_gerado}')
+        else:
+            messagebox.showerror('Erro', 'Dados não encontrados para o CNPJ selecionado')
+    
+    # Botões
+    button_frame = Frame(selection_inner, bg=co1)
+    button_frame.grid(row=2, column=0, columnspan=2, pady=20)
+    
+    btn_preview = criar_botao_moderno(button_frame, "Carregar Preview", carregar_preview, co2, 15)
+    btn_preview.pack(side=LEFT, padx=5)
+    
+    btn_gerar = criar_botao_moderno(button_frame, "Gerar PDF Preenchido", gerar_pdf_preenchido, co3, 20)
+    btn_gerar.pack(side=LEFT, padx=5)
+
+#----- EXPORTAR com design moderno (SEM IMPORTAR)
 def exportar():
     # Limpar frames
     for widget in frame_content.winfo_children():
@@ -616,7 +1061,7 @@ def exportar():
     title_frame.pack(fill=X, padx=5, pady=5)
     title_frame.pack_propagate(False)
     
-    section_title = Label(title_frame, text="Opcoes de Exportacao e Importacao", 
+    section_title = Label(title_frame, text="Opcoes de Exportacao", 
                          font=('Segoe UI', 16, 'bold'), bg=co7, fg=co1)
     section_title.pack(pady=12)
     
@@ -669,31 +1114,14 @@ def exportar():
     btn_excel = criar_botao_moderno(export_buttons, 'Exportar Excel', exportar_excel, co7, 15)
     btn_excel.pack(side=LEFT, padx=10)
     
-    # Frame de importacao
-    import_frame = LabelFrame(options_frame, text="Importar Dados do Excel", 
-                             font=('Segoe UI', 12, 'bold'), bg=co1, fg=co0,
-                             relief="solid", bd=1)
-    import_frame.pack(fill=X, pady=20)
-    
-    import_buttons = Frame(import_frame, bg=co1)
-    import_buttons.pack(pady=20)
-    
-    def importar_excel():
-        arquivo = fd.askopenfilename(filetypes=[("Excel files", "*.xlsx *.xls")])
-        if arquivo:
-            importar_de_excel(arquivo)
-    
-    btn_importar = criar_botao_moderno(import_buttons, 'Importar Excel', importar_excel, co8, 15)
-    btn_importar.pack()
-    
-    # Informacoes sobre importacao
+    # Informacoes sobre exportacao
     info_frame = Frame(options_frame, bg=co5, relief="solid", bd=1)
     info_frame.pack(fill=X, pady=20)
     
     Label(info_frame, text="Selecione a tabela para ser exportada", 
           font=('Segoe UI', 12, 'bold'), bg=co5, fg=co0).pack(pady=10)
     
-    Label(info_frame, text="Para importar dados selecione a tabela e o formato para exportar.", 
+    Label(info_frame, text="Escolha o formato desejado para exportar os dados cadastrados.", 
           font=('Segoe UI', 10), bg=co5, fg=co0, justify=CENTER).pack(pady=10)
 
 #---- CONTROLE
@@ -701,7 +1129,9 @@ def control(i):
     if i == 'repis':
         repis()
     elif i == 'contador':
-        contador()    
+        contador()
+    elif i == 'preenchimento':
+        preenchimento_pdf()
     elif i == 'salvar':
         exportar()
 
