@@ -1117,7 +1117,7 @@ RG do Solicitante: {dados_contador[11] or 'N/A'}
                 }
             
             # Gerar PDF preenchido
-            arquivo_gerado = preencher_pdf_repis(dados_repis, dados_contador)
+            arquivo_gerado = processar_preenchimento_pdf_novo(dados_repis, dados_contador)
             
             if arquivo_gerado:
                 messagebox.showinfo('Sucesso', f'PDF preenchido gerado: {arquivo_gerado}')
