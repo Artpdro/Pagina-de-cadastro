@@ -20,16 +20,58 @@ def preencher_pdf_repis_alinhado(dados_repis, dados_contador=None, arquivo_saida
         # Preencher campos de texto
         for key, field_info in pdf_fields.items():
             value = ""
-            if key in dados_repis:
+            
+            # Mapeamento específico para campos do solicitante
+            if key == 'telefone_solicitante':
+                value = dados_repis.get('telefone', '')
+            elif key == 'cpf_solicitante':
+                value = dados_repis.get('cpf', '')
+            elif key == 'rg_solicitante':
+                value = dados_repis.get('rg', '')
+            elif key == 'nome_contador':
+                # Primeiro tentar dados do contador, depois dados do REPIS
+                if dados_contador and dados_contador.get('nome'):
+                    value = dados_contador['nome']
+                else:
+                    value = dados_repis.get('contador', '')
+            elif key == 'telefone_contador':
+                # Primeiro tentar dados do contador, depois dados do REPIS
+                if dados_contador and dados_contador.get('contato'):
+                    value = dados_contador['contato']
+                else:
+                    value = dados_repis.get('telefone_contador', '')
+            elif key == 'email_contador':
+                # Primeiro tentar dados do contador, depois dados do REPIS
+                if dados_contador and dados_contador.get('email'):
+                    value = dados_contador['email']
+                else:
+                    value = dados_repis.get('email_contador', '')
+            # Para outros campos, usar mapeamento direto
+            elif key in dados_repis and dados_repis[key]:
                 value = str(dados_repis[key])
-            elif dados_contador and key in dados_contador:
+            # Se não encontrou e há dados do contador, buscar lá
+            elif dados_contador and key in dados_contador and dados_contador[key]:
                 value = str(dados_contador[key])
             
             # Tratamento especial para campos compostos como endereco + numero
             if key == 'endereco' and 'numero' in pdf_fields and 'numero' in dados_repis:
-                value = f"{dados_repis.get('endereco', '')}, {dados_repis.get('numero', '')}"
+                endereco_base = dados_repis.get('endereco', '')
+                numero = dados_repis.get('numero', '')
+                if endereco_base and numero:
+                    value = f"{endereco_base}, {numero}"
+                elif endereco_base:
+                    value = endereco_base
             
-            if value:
+            # Garantir que telefone seja formatado corretamente
+            if 'telefone' in key and value:
+                # Remover caracteres não numéricos e formatar
+                telefone_limpo = ''.join(filter(str.isdigit, value))
+                if len(telefone_limpo) == 11:  # Celular
+                    value = f"({telefone_limpo[:2]}) {telefone_limpo[2:7]}-{telefone_limpo[7:]}"
+                elif len(telefone_limpo) == 10:  # Fixo
+                    value = f"({telefone_limpo[:2]}) {telefone_limpo[2:6]}-{telefone_limpo[6:]}"
+            
+            if value and value != "None":
                 can.drawString(field_info['x'], field_info['y'], value)
 
         # Preencher checkboxes
@@ -65,7 +107,8 @@ def preencher_pdf_repis_alinhado(dados_repis, dados_contador=None, arquivo_saida
         
         if not arquivo_saida:
             cnpj_limpo = dados_repis.get("cnpj", "sem_cnpj").replace("/", "_").replace(".", "_").replace("-", "_")
-            arquivo_saida = f"REPIS_preenchido_alinhado_{cnpj_limpo}.pdf"
+            timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
+            arquivo_saida = f"REPIS_preenchido_{cnpj_limpo}_{timestamp}.pdf"
         
         with open(arquivo_saida, "wb") as outputStream:
             output.write(outputStream)

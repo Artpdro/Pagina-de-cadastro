@@ -1,15 +1,3 @@
-'''
-Este arquivo contém o mapeamento corrigido dos campos do PDF REPIS-2025-2026.pdf para preenchimento.
-As coordenadas (x, y) representam o canto inferior esquerdo do campo de texto.
-As coordenadas foram ajustadas baseadas na análise dos PDFs de exemplo fornecidos.
-
-Sistema de coordenadas do PDF:
-- Origem (0,0) no canto inferior esquerdo
-- X aumenta para a direita
-- Y aumenta para cima
-- Tamanho da página: aproximadamente 612x792 pontos (Letter)
-'''
-
 # Coordenadas corrigidas baseadas na análise visual dos PDFs
 pdf_fields = {
     # Primeira linha - Razão Social e CNPJ

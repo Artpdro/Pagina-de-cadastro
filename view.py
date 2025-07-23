@@ -94,12 +94,7 @@ CREATE TABLE IF NOT EXISTS contadores_novo (
     empresas_representadas TEXT,
     empresa_associada_1 TEXT,
     empresa_associada_2 TEXT,
-    empresa_associada_3 TEXT,
-    nome_solicitante    TEXT,
-    solicitante_tipo    TEXT,
-    telefone_solicitante TEXT,
-    cpf_solicitante     TEXT,
-    rg_solicitante      TEXT
+    empresa_associada_3 TEXT
 )""")
 conn_contadores_novo.commit()
 
@@ -269,12 +264,12 @@ def ver_dados_repis():
 
 # Funções para a nova tabela contadores com novos campos
 def criar_contador_novo(dados):
-    cnpj, nome, municipio, socio, contato, tipo_pessoa, tipo_telefone, empresas_representadas, empresa_associada_1, empresa_associada_2, empresa_associada_3, nome_solicitante, solicitante_tipo, telefone_solicitante, cpf_solicitante, rg_solicitante = dados
+    cnpj, nome, municipio, socio, contato, tipo_pessoa, tipo_telefone, empresas_representadas, empresa_associada_1, empresa_associada_2, empresa_associada_3 = dados
     cursor_contadores_novo.execute("""
         INSERT INTO contadores_novo
-          (cnpj, nome, municipio, socio, contato, tipo_pessoa, tipo_telefone, empresas_representadas, empresa_associada_1, empresa_associada_2, empresa_associada_3, nome_solicitante, solicitante_tipo, telefone_solicitante, cpf_solicitante, rg_solicitante)
-        VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
-    """, (cnpj, nome, municipio, socio, contato, tipo_pessoa, tipo_telefone, empresas_representadas, empresa_associada_1, empresa_associada_2, empresa_associada_3, nome_solicitante, solicitante_tipo, telefone_solicitante, cpf_solicitante, rg_solicitante)
+          (cnpj, nome, municipio, socio, contato, tipo_pessoa, tipo_telefone, empresas_representadas, empresa_associada_1, empresa_associada_2, empresa_associada_3)
+        VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+    """, (cnpj, nome, municipio, socio, contato, tipo_pessoa, tipo_telefone, empresas_representadas, empresa_associada_1, empresa_associada_2, empresa_associada_3)
     )
     conn_contadores_novo.commit()
 
@@ -307,7 +302,7 @@ def ver_dados_contadores():
     lista = []
     with conn_contadores_novo:
         cur = conn_contadores_novo.cursor()
-        cur.execute('SELECT cnpj, nome, municipio, socio, contato, tipo_pessoa, tipo_telefone, empresas_representadas, empresa_associada_1, empresa_associada_2, empresa_associada_3, nome_solicitante, solicitante_tipo, telefone_solicitante, cpf_solicitante, rg_solicitante FROM contadores_novo')
+        cur.execute('SELECT cnpj, nome, municipio, socio, contato, tipo_pessoa, tipo_telefone, empresas_representadas, empresa_associada_1, empresa_associada_2, empresa_associada_3 FROM contadores_novo')
         linha = cur.fetchall()
 
         for i in linha:
@@ -370,7 +365,7 @@ def exportar_para_pdf(tabela):
             nome_arquivo = "repis_dados.pdf"
         elif tabela == "Contadores":
             dados = ver_dados_contadores()
-            headers = ['CNPJ', 'Nome', 'Município', 'Sócio', 'Contato', 'Tipo Pessoa', 'Tipo Telefone', 'Empresas Representadas', 'Empresa Associada 1', 'Empresa Associada 2', 'Empresa Associada 3', 'Nome Solicitante', 'Tipo Solicitante', 'Tel. Solicitante', 'CPF Solicitante', 'RG Solicitante']
+            headers = ['CNPJ', 'Nome', 'Município', 'Sócio', 'Contato', 'Tipo Pessoa', 'Tipo Telefone', 'Empresas Representadas', 'Empresa Associada 1', 'Empresa Associada 2', 'Empresa Associada 3']
             nome_arquivo = "contadores_dados.pdf"
         else:  # Empresas
             dados = ver_dados_empresas()
@@ -415,7 +410,7 @@ def exportar_para_word(tabela):
             nome_arquivo = "repis_dados.docx"
         elif tabela == "Contadores":
             dados = ver_dados_contadores()
-            headers = ["CNPJ", "Nome", "Município", "Sócio", "Contato", "Tipo Pessoa", "Tipo Telefone", "Empresas Representadas", "Empresa Associada 1", "Empresa Associada 2", "Empresa Associada 3", "Nome Solicitante", "Tipo Solicitante", "Tel. Solicitante", "CPF Solicitante", "RG Solicitante"]
+            headers = ["CNPJ", "Nome", "Município", "Sócio", "Contato", "Tipo Pessoa", "Tipo Telefone", "Empresas Representadas", "Empresa Associada 1", "Empresa Associada 2", "Empresa Associada 3"]
             nome_arquivo = "contadores_dados.docx"
         else:  # Empresas
             dados = ver_dados_empresas()
@@ -453,7 +448,7 @@ def exportar_para_excel(tabela):
             nome_arquivo = "repis_dados.xlsx"
         elif tabela == "Contadores":
             dados = ver_dados_contadores()
-            headers = ["CNPJ", "Nome", "Município", "Sócio", "Contato", "Tipo Pessoa", "Tipo Telefone", "Empresas Representadas", "Empresa Associada 1", "Empresa Associada 2", "Empresa Associada 3", "Nome Solicitante", "Tipo Solicitante", "Tel. Solicitante", "CPF Solicitante", "RG Solicitante"]
+            headers = ["CNPJ", "Nome", "Município", "Sócio", "Contato", "Tipo Pessoa", "Tipo Telefone", "Empresas Representadas", "Empresa Associada 1", "Empresa Associada 2", "Empresa Associada 3"]
             nome_arquivo = "contadores_dados.xlsx"
         else:  # Empresas
             dados = ver_dados_empresas()
@@ -467,6 +462,111 @@ def exportar_para_excel(tabela):
         
     except Exception as e:
         messagebox.showerror('Erro', f'Erro ao criar Excel: {str(e)}')
+
+# Cria a tabela de associação contador-empresa se não existir
+conn_associacao = sqlite3.connect('associacao_contador_empresa.db')
+cursor_associacao = conn_associacao.cursor()
+
+cursor_associacao.execute("""
+CREATE TABLE IF NOT EXISTS contador_empresa (
+    id                  INTEGER PRIMARY KEY AUTOINCREMENT,
+    cnpj_contador       TEXT NOT NULL,
+    cnpj_empresa        TEXT NOT NULL,
+    data_associacao     TEXT DEFAULT CURRENT_TIMESTAMP,
+    ativo               INTEGER DEFAULT 1,
+    FOREIGN KEY (cnpj_contador) REFERENCES contadores_novo(cnpj),
+    FOREIGN KEY (cnpj_empresa) REFERENCES empresas(cnpj),
+    UNIQUE(cnpj_contador, cnpj_empresa)
+)
+""")
+conn_associacao.commit()
+
+# Funções para gerenciar associação contador-empresa
+def associar_contador_empresa(cnpj_contador, cnpj_empresa):
+    """Associa um contador a uma empresa"""
+    try:
+        cursor_associacao.execute("""
+            INSERT INTO contador_empresa (cnpj_contador, cnpj_empresa)
+            VALUES (?, ?)
+        """, (cnpj_contador, cnpj_empresa))
+        conn_associacao.commit()
+        return True
+    except sqlite3.IntegrityError:
+        # Associação já existe
+        return False
+
+def desassociar_contador_empresa(cnpj_contador, cnpj_empresa):
+    """Remove a associação entre um contador e uma empresa"""
+    cursor_associacao.execute("""
+        UPDATE contador_empresa 
+        SET ativo = 0 
+        WHERE cnpj_contador = ? AND cnpj_empresa = ?
+    """, (cnpj_contador, cnpj_empresa))
+    conn_associacao.commit()
+
+def buscar_empresas_por_contador(cnpj_contador):
+    """Retorna todas as empresas associadas a um contador"""
+    try:
+        # Buscar associações
+        cursor_associacao.execute("""
+            SELECT cnpj_empresa
+            FROM contador_empresa 
+            WHERE cnpj_contador = ? AND ativo = 1
+        """, (cnpj_contador,))
+        associacoes = cursor_associacao.fetchall()
+        
+        empresas = []
+        for associacao in associacoes:
+            cnpj_empresa = associacao[0]
+            # Buscar dados da empresa
+            cursor_empresas.execute("""
+                SELECT cnpj, razao_social, nome_fantasia, municipio, situacao
+                FROM empresas 
+                WHERE cnpj = ?
+            """, (cnpj_empresa,))
+            empresa = cursor_empresas.fetchone()
+            if empresa:
+                empresas.append(empresa)
+        
+        return empresas
+    except Exception as e:
+        print(f"Erro ao buscar empresas por contador: {e}")
+        return []
+
+def buscar_contadores_por_empresa(cnpj_empresa):
+    """Retorna todos os contadores associados a uma empresa"""
+    cursor_associacao.execute("""
+        SELECT c.cnpj, c.nome, c.municipio, c.contato
+        FROM contador_empresa ce
+        JOIN contadores_novo c ON ce.cnpj_contador = c.cnpj
+        WHERE ce.cnpj_empresa = ? AND ce.ativo = 1
+    """, (cnpj_empresa,))
+    return cursor_associacao.fetchall()
+
+def buscar_contador_por_cnpj_com_empresas(cnpj_contador):
+    """Busca um contador e suas empresas associadas"""
+    contador = buscar_contador_por_cnpj_ou_nome(cnpj_contador)
+    if contador:
+        empresas = buscar_empresas_por_contador(cnpj_contador)
+        return {
+            'contador': contador,
+            'empresas': empresas
+        }
+    return None
+
+def buscar_contador_por_nome_com_empresas(nome_contador):
+    """Busca contadores por nome e suas empresas associadas"""
+    cursor_contadores_novo.execute("SELECT * FROM contadores_novo WHERE nome LIKE ?", (f'%{nome_contador}%',))
+    contadores = cursor_contadores_novo.fetchall()
+    
+    resultado = []
+    for contador in contadores:
+        empresas = buscar_empresas_por_contador(contador[0])  # cnpj é o primeiro campo
+        resultado.append({
+            'contador': contador,
+            'empresas': empresas
+        })
+    return resultado
 
 from pdf_filler import processar_preenchimento_pdf_novo
 
