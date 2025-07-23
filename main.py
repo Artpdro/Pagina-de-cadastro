@@ -25,7 +25,7 @@ co8 = "#9B59B6"  # Roxo
 co9 = "#1ABC9C"  # Verde agua
 
 janela = Tk()
-janela.title("Sistema Avancado de Cadastro - REPIS e Contadores")
+janela.title("Sindnorte - REPIS e Contadores")
 janela.geometry("1400x900")
 janela.configure(background=co5)
 janela.resizable(width=FALSE, height=FALSE)
@@ -556,7 +556,7 @@ def contador():
     title_frame.pack(fill=X, padx=5, pady=5)
     title_frame.pack_propagate(False)
     
-    section_title = Label(title_frame, text="Cadastro de Contadores", 
+    section_title = Label(title_frame, text="Contadores", 
                          font=('Segoe UI', 16, 'bold'), bg=co9, fg=co1)
     section_title.pack(pady=12)
     
