@@ -463,70 +463,78 @@ def exportar_para_excel(tabela):
     except Exception as e:
         messagebox.showerror('Erro', f'Erro ao criar Excel: {str(e)}')
 
-# Cria a tabela de associação contador-empresa se não existir
-conn_associacao = sqlite3.connect('associacao_contador_empresa.db')
-cursor_associacao = conn_associacao.cursor()
+# Cria a tabela de associação contador-empresa se não exções para gerenciar associação contador-empresa
 
-cursor_associacao.execute("""
-CREATE TABLE IF NOT EXISTS contador_empresa (
-    id                  INTEGER PRIMARY KEY AUTOINCREMENT,
-    cnpj_contador       TEXT NOT NULL,
-    cnpj_empresa        TEXT NOT NULL,
-    data_associacao     TEXT DEFAULT CURRENT_TIMESTAMP,
-    ativo               INTEGER DEFAULT 1,
-    FOREIGN KEY (cnpj_contador) REFERENCES contadores_novo(cnpj),
-    FOREIGN KEY (cnpj_empresa) REFERENCES empresas(cnpj),
-    UNIQUE(cnpj_contador, cnpj_empresa)
-)
-""")
-conn_associacao.commit()
 
-# Funções para gerenciar associação contador-empresa
-def associar_contador_empresa(cnpj_contador, cnpj_empresa):
+
+# === FUNÇÕES DE INTERLIGAÇÃO DE TABELAS ===
+
+# Funções para interligação de tabelas
+
+def associar_contador_empresa(cnpj_contador, cnpj_empresa, tipo_relacao='representacao'):
     """Associa um contador a uma empresa"""
     try:
-        cursor_associacao.execute("""
-            INSERT INTO contador_empresa (cnpj_contador, cnpj_empresa)
-            VALUES (?, ?)
-        """, (cnpj_contador, cnpj_empresa))
-        conn_associacao.commit()
+        conn_rel = sqlite3.connect('relacionamentos.db')
+        cursor_rel = conn_rel.cursor()
+        
+        cursor_rel.execute("""
+        INSERT OR REPLACE INTO contador_empresa 
+        (cnpj_contador, cnpj_empresa, tipo_relacao, ativo)
+        VALUES (?, ?, ?, 1)
+        """, (cnpj_contador, cnpj_empresa, tipo_relacao))
+        
+        conn_rel.commit()
+        conn_rel.close()
         return True
-    except sqlite3.IntegrityError:
-        # Associação já existe
+    except Exception as e:
+        print(f"Erro ao associar contador-empresa: {e}")
         return False
 
 def desassociar_contador_empresa(cnpj_contador, cnpj_empresa):
-    """Remove a associação entre um contador e uma empresa"""
-    cursor_associacao.execute("""
+    """Desassocia um contador de uma empresa"""
+    try:
+        conn_rel = sqlite3.connect('relacionamentos.db')
+        cursor_rel = conn_rel.cursor()
+        
+        cursor_rel.execute("""
         UPDATE contador_empresa 
         SET ativo = 0 
         WHERE cnpj_contador = ? AND cnpj_empresa = ?
-    """, (cnpj_contador, cnpj_empresa))
-    conn_associacao.commit()
+        """, (cnpj_contador, cnpj_empresa))
+        
+        conn_rel.commit()
+        conn_rel.close()
+        return True
+    except Exception as e:
+        print(f"Erro ao desassociar contador-empresa: {e}")
+        return False
 
 def buscar_empresas_por_contador(cnpj_contador):
-    """Retorna todas as empresas associadas a um contador"""
+    """Busca todas as empresas associadas a um contador"""
     try:
-        # Buscar associações
-        cursor_associacao.execute("""
-            SELECT cnpj_empresa
-            FROM contador_empresa 
-            WHERE cnpj_contador = ? AND ativo = 1
+        conn_rel = sqlite3.connect('relacionamentos.db')
+        conn_empresas = sqlite3.connect('empresas.db')
+        
+        cursor_rel = conn_rel.cursor()
+        cursor_empresas = conn_empresas.cursor()
+        
+        # Buscar CNPJs das empresas associadas
+        cursor_rel.execute("""
+        SELECT cnpj_empresa FROM contador_empresa 
+        WHERE cnpj_contador = ? AND ativo = 1
         """, (cnpj_contador,))
-        associacoes = cursor_associacao.fetchall()
+        
+        cnpjs_empresas = [row[0] for row in cursor_rel.fetchall()]
         
         empresas = []
-        for associacao in associacoes:
-            cnpj_empresa = associacao[0]
-            # Buscar dados da empresa
-            cursor_empresas.execute("""
-                SELECT cnpj, razao_social, nome_fantasia, municipio, situacao
-                FROM empresas 
-                WHERE cnpj = ?
-            """, (cnpj_empresa,))
+        for cnpj in cnpjs_empresas:
+            cursor_empresas.execute("SELECT * FROM empresas WHERE cnpj = ?", (cnpj,))
             empresa = cursor_empresas.fetchone()
             if empresa:
                 empresas.append(empresa)
+        
+        conn_rel.close()
+        conn_empresas.close()
         
         return empresas
     except Exception as e:
@@ -534,46 +542,109 @@ def buscar_empresas_por_contador(cnpj_contador):
         return []
 
 def buscar_contadores_por_empresa(cnpj_empresa):
-    """Retorna todos os contadores associados a uma empresa"""
-    cursor_associacao.execute("""
-        SELECT c.cnpj, c.nome, c.municipio, c.contato
-        FROM contador_empresa ce
-        JOIN contadores_novo c ON ce.cnpj_contador = c.cnpj
-        WHERE ce.cnpj_empresa = ? AND ce.ativo = 1
-    """, (cnpj_empresa,))
-    return cursor_associacao.fetchall()
+    """Busca todos os contadores associados a uma empresa"""
+    try:
+        conn_rel = sqlite3.connect('relacionamentos.db')
+        conn_contadores = sqlite3.connect('contadores_novo.db')
+        
+        cursor_rel = conn_rel.cursor()
+        cursor_contadores = conn_contadores.cursor()
+        
+        # Buscar CNPJs dos contadores associados
+        cursor_rel.execute("""
+        SELECT cnpj_contador FROM contador_empresa 
+        WHERE cnpj_empresa = ? AND ativo = 1
+        """, (cnpj_empresa,))
+        
+        cnpjs_contadores = [row[0] for row in cursor_rel.fetchall()]
+        
+        contadores = []
+        for cnpj in cnpjs_contadores:
+            cursor_contadores.execute("SELECT * FROM contadores_novo WHERE cnpj = ?", (cnpj,))
+            contador = cursor_contadores.fetchone()
+            if contador:
+                contadores.append(contador)
+        
+        conn_rel.close()
+        conn_contadores.close()
+        
+        return contadores
+    except Exception as e:
+        print(f"Erro ao buscar contadores por empresa: {e}")
+        return []
 
-def buscar_contador_por_cnpj_com_empresas(cnpj_contador):
-    """Busca um contador e suas empresas associadas"""
-    contador = buscar_contador_por_cnpj_ou_nome(cnpj_contador)
-    if contador:
+def associar_empresa_repis(cnpj_empresa, cnpj_repis, cnpj_contador_responsavel=None, ano_repis='2025-2026'):
+    """Associa uma empresa a um REPIS"""
+    try:
+        conn_rel = sqlite3.connect('relacionamentos.db')
+        cursor_rel = conn_rel.cursor()
+        
+        cursor_rel.execute("""
+        INSERT OR REPLACE INTO empresa_repis 
+        (cnpj_empresa, cnpj_repis, ano_repis, cnpj_contador_responsavel, status)
+        VALUES (?, ?, ?, ?, 'ativo')
+        """, (cnpj_empresa, cnpj_repis, ano_repis, cnpj_contador_responsavel))
+        
+        conn_rel.commit()
+        conn_rel.close()
+        return True
+    except Exception as e:
+        print(f"Erro ao associar empresa-repis: {e}")
+        return False
+
+def buscar_repis_por_contador(cnpj_contador):
+    """Busca todos os REPIS associados a um contador"""
+    try:
+        conn_rel = sqlite3.connect('relacionamentos.db')
+        conn_repis = sqlite3.connect('repis.db')
+        
+        cursor_rel = conn_rel.cursor()
+        cursor_repis = conn_repis.cursor()
+        
+        # Buscar CNPJs dos REPIS onde o contador é responsável
+        cursor_rel.execute("""
+        SELECT cnpj_repis FROM empresa_repis 
+        WHERE cnpj_contador_responsavel = ? AND status = 'ativo'
+        """, (cnpj_contador,))
+        
+        cnpjs_repis = [row[0] for row in cursor_rel.fetchall()]
+        
+        repis_list = []
+        for cnpj in cnpjs_repis:
+            cursor_repis.execute("SELECT * FROM repis WHERE cnpj = ?", (cnpj,))
+            repis = cursor_repis.fetchone()
+            if repis:
+                repis_list.append(repis)
+        
+        conn_rel.close()
+        conn_repis.close()
+        
+        return repis_list
+    except Exception as e:
+        print(f"Erro ao buscar REPIS por contador: {e}")
+        return []
+
+def buscar_dados_completos_contador(cnpj_contador):
+    """Busca dados completos de um contador incluindo empresas e REPIS associados"""
+    try:
+        from view import buscar_contador_por_cnpj_ou_nome
+        
+        # Dados básicos do contador
+        contador = buscar_contador_por_cnpj_ou_nome(cnpj_contador)
+        if not contador:
+            return None
+        
+        # Empresas associadas
         empresas = buscar_empresas_por_contador(cnpj_contador)
+        
+        # REPIS associados
+        repis_list = buscar_repis_por_contador(cnpj_contador)
+        
         return {
             'contador': contador,
-            'empresas': empresas
+            'empresas': empresas,
+            'repis': repis_list
         }
-    return None
-
-def buscar_contador_por_nome_com_empresas(nome_contador):
-    """Busca contadores por nome e suas empresas associadas"""
-    cursor_contadores_novo.execute("SELECT * FROM contadores_novo WHERE nome LIKE ?", (f'%{nome_contador}%',))
-    contadores = cursor_contadores_novo.fetchall()
-    
-    resultado = []
-    for contador in contadores:
-        empresas = buscar_empresas_por_contador(contador[0])  # cnpj é o primeiro campo
-        resultado.append({
-            'contador': contador,
-            'empresas': empresas
-        })
-    return resultado
-
-from pdf_filler import processar_preenchimento_pdf_novo
-
-def preencher_pdf_repis(dados_repis, dados_contador=None):
-    """
-    Preenche o PDF REPIS com os dados fornecidos usando coordenadas alinhadas
-    """
-    return processar_preenchimento_pdf_novo(dados_repis, dados_contador)
-
-print()
+    except Exception as e:
+        print(f"Erro ao buscar dados completos: {e}")
+        return None

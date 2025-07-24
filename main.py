@@ -1,4 +1,3 @@
-import sqlite3
 from tkinter.ttk import *
 from tkinter import *
 from tkinter import ttk
@@ -7,6 +6,7 @@ from tkinter import filedialog as fd
 from PIL import ImageTk, Image
 import requests
 import json
+import sqlite3
 
 #banco de dados
 from view import *
@@ -547,12 +547,28 @@ def contador():
     aba_ativa.set("contador")
     atualizar_navegacao()
     
-    # Container principal
+    # Container principal com scroll
     main_container = Frame(frame_content, bg=co1, relief="solid", bd=1)
     main_container.pack(fill=BOTH, expand=True, padx=10, pady=10)
     
+    # Canvas para scroll
+    canvas = Canvas(main_container, bg=co1)
+    scrollbar = Scrollbar(main_container, orient="vertical", command=canvas.yview)
+    scrollable_frame = Frame(canvas, bg=co1)
+    
+    scrollable_frame.bind(
+        "<Configure>",
+        lambda e: canvas.configure(scrollregion=canvas.bbox("all"))
+    )
+    
+    canvas.create_window((0, 0), window=scrollable_frame, anchor="nw")
+    canvas.configure(yscrollcommand=scrollbar.set)
+    
+    canvas.pack(side="left", fill="both", expand=True)
+    scrollbar.pack(side="right", fill="y")
+    
     # Titulo da secao
-    title_frame = Frame(main_container, bg=co9, height=50)
+    title_frame = Frame(scrollable_frame, bg=co9, height=50)
     title_frame.pack(fill=X, padx=5, pady=5)
     title_frame.pack_propagate(False)
     
@@ -561,7 +577,7 @@ def contador():
     section_title.pack(pady=12)
     
     # Frame de pesquisa
-    search_frame = LabelFrame(main_container, text="Pesquisa por CNPJ ou Nome", 
+    search_frame = LabelFrame(scrollable_frame, text="Pesquisa por CNPJ ou Nome", 
                              font=('Segoe UI', 12, 'bold'), bg=co1, fg=co0,
                              relief="solid", bd=1)
     search_frame.pack(fill=X, padx=10, pady=5)
@@ -608,7 +624,7 @@ def contador():
     search_btn.grid(row=0, column=2, padx=10)
     
     # Frame do formulario
-    form_frame = LabelFrame(main_container, text="Dados do Contador", 
+    form_frame = LabelFrame(scrollable_frame, text="Dados do Contador", 
                            font=('Segoe UI', 12, 'bold'), bg=co1, fg=co0,
                            relief="solid", bd=1)
     form_frame.pack(fill=BOTH, expand=True, padx=10, pady=5)
@@ -885,12 +901,28 @@ def preenchimento_pdf():
     aba_ativa.set("preenchimento")
     atualizar_navegacao()
     
-    # Container principal
+    # Container principal com scroll
     main_container = Frame(frame_content, bg=co1, relief="solid", bd=1)
     main_container.pack(fill=BOTH, expand=True, padx=10, pady=10)
     
+    # Canvas para scroll
+    canvas = Canvas(main_container, bg=co1)
+    scrollbar = Scrollbar(main_container, orient="vertical", command=canvas.yview)
+    scrollable_frame = Frame(canvas, bg=co1)
+    
+    scrollable_frame.bind(
+        "<Configure>",
+        lambda e: canvas.configure(scrollregion=canvas.bbox("all"))
+    )
+    
+    canvas.create_window((0, 0), window=scrollable_frame, anchor="nw")
+    canvas.configure(yscrollcommand=scrollbar.set)
+    
+    canvas.pack(side="left", fill="both", expand=True)
+    scrollbar.pack(side="right", fill="y")
+    
     # Titulo da secao
-    title_frame = Frame(main_container, bg=co8, height=50)
+    title_frame = Frame(scrollable_frame, bg=co8, height=50)
     title_frame.pack(fill=X, padx=5, pady=5)
     title_frame.pack_propagate(False)
     
@@ -898,8 +930,8 @@ def preenchimento_pdf():
                          font=('Segoe UI', 16, 'bold'), bg=co8, fg=co1)
     section_title.pack(pady=12)
     
-    # Frame de seleção
-    selection_frame = LabelFrame(main_container, text="Selecionar Dados para Preenchimento", 
+    # Frame de seleção individual
+    selection_frame = LabelFrame(scrollable_frame, text="Opção 1: Selecionar REPIS Individual", 
                                 font=('Segoe UI', 12, 'bold'), bg=co1, fg=co0,
                                 relief="solid", bd=1)
     selection_frame.pack(fill=X, padx=10, pady=5)
@@ -917,7 +949,7 @@ def preenchimento_pdf():
     combo_cnpj_repis = ttk.Combobox(selection_inner, width=25, values=cnpjs_repis, font=('Segoe UI', 10))
     combo_cnpj_repis.grid(row=0, column=1, padx=10, pady=5)
     
-    # NOVA FUNCIONALIDADE: Campo de busca ao lado
+    # Campo de busca ao lado
     Label(selection_inner, text="OU Buscar:", font=('Segoe UI', 10, 'bold'), bg=co1, fg=co0).grid(row=0, column=2, sticky=W, padx=5, pady=5)
     e_busca_repis = Entry(selection_inner, width=20, font=('Segoe UI', 10), relief='solid', bd=2)
     e_busca_repis.grid(row=0, column=3, padx=5, pady=5)
@@ -934,22 +966,22 @@ def preenchimento_pdf():
             combo_cnpj_repis.set(resultado[0])  # Definir o CNPJ encontrado no combo
             messagebox.showinfo('Sucesso', f'REPIS encontrado: {resultado[1]}')
         else:
-            messagebox.showwarning('Aviso', 'CNPJ não encontrado no REPIS')
+            messagebox.showwarning('Aviso', 'REPIS não encontrado!')
     
-    btn_buscar_repis = criar_botao_moderno(selection_inner, 'Buscar', buscar_repis, co8, 8)
-    btn_buscar_repis.grid(row=0, column=4, padx=5)
+    search_btn_repis = criar_botao_moderno(selection_inner, 'Buscar', buscar_repis, co8)
+    search_btn_repis.grid(row=0, column=4, padx=10)
     
     # Seleção de CNPJ Contador (opcional)
     Label(selection_inner, text="Selecionar CNPJ Contador (opcional):", font=('Segoe UI', 10, 'bold'), bg=co1, fg=co0).grid(row=1, column=0, sticky=W, padx=5, pady=5)
     
-    # Buscar todos os CNPJs dos Contadores
+    # Buscar todos os CNPJs dos contadores
     dados_contadores = ver_dados_contadores()
     cnpjs_contadores = [item[0] for item in dados_contadores]
     
     combo_cnpj_contador = ttk.Combobox(selection_inner, width=25, values=cnpjs_contadores, font=('Segoe UI', 10))
     combo_cnpj_contador.grid(row=1, column=1, padx=10, pady=5)
     
-    # NOVA FUNCIONALIDADE: Campo de busca para contador
+    # Campo de busca ao lado
     Label(selection_inner, text="OU Buscar:", font=('Segoe UI', 10, 'bold'), bg=co1, fg=co0).grid(row=1, column=2, sticky=W, padx=5, pady=5)
     e_busca_contador = Entry(selection_inner, width=20, font=('Segoe UI', 10), relief='solid', bd=2)
     e_busca_contador.grid(row=1, column=3, padx=5, pady=5)
@@ -966,20 +998,153 @@ def preenchimento_pdf():
             combo_cnpj_contador.set(resultado[0])  # Definir o CNPJ encontrado no combo
             messagebox.showinfo('Sucesso', f'Contador encontrado: {resultado[1]}')
         else:
-            messagebox.showwarning('Aviso', 'Contador não encontrado')
+            messagebox.showwarning('Aviso', 'Contador não encontrado!')
     
-    btn_buscar_contador = criar_botao_moderno(selection_inner, 'Buscar', buscar_contador, co8, 8)
-    btn_buscar_contador.grid(row=1, column=4, padx=5)
+    search_btn_contador = criar_botao_moderno(selection_inner, 'Buscar', buscar_contador, co8)
+    search_btn_contador.grid(row=1, column=4, padx=10)
     
-    # Frame de preview
-    preview_frame = LabelFrame(main_container, text="Preview dos Dados", 
+    # NOVA FUNCIONALIDADE: Frame de seleção por contador
+    contador_frame = LabelFrame(scrollable_frame, text="Opção 2: Selecionar Contador e Empresas Vinculadas", 
+                               font=('Segoe UI', 12, 'bold'), bg=co1, fg=co0,
+                               relief="solid", bd=1)
+    contador_frame.pack(fill=X, padx=10, pady=5)
+    
+    contador_inner = Frame(contador_frame, bg=co1)
+    contador_inner.pack(fill=X, padx=10, pady=10)
+    
+    # Seleção de contador
+    Label(contador_inner, text="Selecionar Contador:", font=('Segoe UI', 10, 'bold'), bg=co1, fg=co0).grid(row=0, column=0, sticky=W, padx=5, pady=5)
+    
+    combo_contador_empresas = ttk.Combobox(contador_inner, width=40, values=cnpjs_contadores, font=('Segoe UI', 10))
+    combo_contador_empresas.grid(row=0, column=1, padx=10, pady=5)
+    
+    # Campo de busca para contador
+    Label(contador_inner, text="OU Buscar:", font=('Segoe UI', 10, 'bold'), bg=co1, fg=co0).grid(row=0, column=2, sticky=W, padx=5, pady=5)
+    e_busca_contador_empresas = Entry(contador_inner, width=20, font=('Segoe UI', 10), relief='solid', bd=2)
+    e_busca_contador_empresas.grid(row=0, column=3, padx=5, pady=5)
+    
+    def buscar_contador_empresas():
+        termo = e_busca_contador_empresas.get().strip()
+        if not termo:
+            messagebox.showerror('Erro', 'Digite um termo para buscar')
+            return
+        
+        # Buscar contador por CNPJ ou nome
+        resultado = buscar_contador_por_cnpj_ou_nome(termo)
+        if resultado:
+            combo_contador_empresas.set(resultado[0])  # Definir o CNPJ encontrado no combo
+            carregar_empresas_contador()  # Carregar empresas automaticamente
+            messagebox.showinfo('Sucesso', f'Contador encontrado: {resultado[1]}')
+        else:
+            messagebox.showwarning('Aviso', 'Contador não encontrado!')
+    
+    search_btn_contador_empresas = criar_botao_moderno(contador_inner, 'Buscar', buscar_contador_empresas, co9)
+    search_btn_contador_empresas.grid(row=0, column=4, padx=10)
+    
+    # Botão para carregar empresas
+    btn_carregar_empresas = criar_botao_moderno(contador_inner, 'Carregar Empresas', lambda: carregar_empresas_contador(), co9)
+    btn_carregar_empresas.grid(row=0, column=5, padx=10)
+    
+    # Frame para exibir empresas vinculadas
+    empresas_frame = LabelFrame(contador_inner, text="Empresas Vinculadas ao Contador", 
+                               font=('Segoe UI', 11, 'bold'), bg=co1, fg=co0,
+                               relief="solid", bd=1)
+    empresas_frame.grid(row=1, column=0, columnspan=6, sticky=EW, padx=5, pady=10)
+    
+    empresas_inner = Frame(empresas_frame, bg=co1)
+    empresas_inner.pack(fill=BOTH, expand=True, padx=10, pady=10)
+    
+    # Variáveis para checkboxes das empresas
+    empresas_vars = {}
+    empresas_checkboxes = {}
+    
+    def carregar_empresas_contador():
+        # Limpar empresas anteriores
+        for widget in empresas_inner.winfo_children():
+            widget.destroy()
+        empresas_vars.clear()
+        empresas_checkboxes.clear()
+        
+        cnpj_contador = combo_contador_empresas.get().strip()
+        if not cnpj_contador:
+            Label(empresas_inner, text="Selecione um contador para ver as empresas vinculadas", 
+                  font=('Segoe UI', 10), bg=co1, fg=co0).pack(pady=10)
+            return
+        
+        # Buscar empresas vinculadas ao contador
+        try:
+            empresas = buscar_empresas_por_contador(cnpj_contador)
+            
+            if not empresas:
+                Label(empresas_inner, text="Nenhuma empresa vinculada a este contador", 
+                      font=('Segoe UI', 10), bg=co1, fg=co0).pack(pady=10)
+                return
+            
+            # Botões para selecionar/desselecionar todas
+            botoes_frame = Frame(empresas_inner, bg=co1)
+            botoes_frame.pack(fill=X, pady=5)
+            
+            def selecionar_todas():
+                for var in empresas_vars.values():
+                    var.set(True)
+            
+            def desselecionar_todas():
+                for var in empresas_vars.values():
+                    var.set(False)
+            
+            btn_selecionar_todas = criar_botao_moderno(botoes_frame, 'Selecionar Todas', selecionar_todas, co3)
+            btn_selecionar_todas.pack(side=LEFT, padx=5)
+            
+            btn_desselecionar_todas = criar_botao_moderno(botoes_frame, 'Desselecionar Todas', desselecionar_todas, co4)
+            btn_desselecionar_todas.pack(side=LEFT, padx=5)
+            
+            # Lista de empresas com checkboxes
+            Label(empresas_inner, text=f"Empresas encontradas ({len(empresas)}):", 
+                  font=('Segoe UI', 10, 'bold'), bg=co1, fg=co0).pack(anchor=W, pady=(10,5))
+            
+            for i, empresa in enumerate(empresas):
+                empresa_frame = Frame(empresas_inner, bg=co5, relief="solid", bd=1)
+                empresa_frame.pack(fill=X, pady=2, padx=5)
+                
+                # Checkbox
+                var = BooleanVar()
+                empresas_vars[empresa[0]] = var  # CNPJ como chave
+                
+                checkbox = Checkbutton(empresa_frame, variable=var, bg=co5, font=('Segoe UI', 9))
+                checkbox.pack(side=LEFT, padx=5, pady=5)
+                empresas_checkboxes[empresa[0]] = checkbox
+                
+                # Informações da empresa
+                info_text = f"CNPJ: {empresa[0]} | Razão Social: {empresa[1] or 'N/A'} | Município: {empresa[9] or 'N/A'}"
+                Label(empresa_frame, text=info_text, font=('Segoe UI', 9), bg=co5, fg=co0).pack(side=LEFT, padx=5, pady=5)
+            
+        except Exception as e:
+            messagebox.showerror('Erro', f'Erro ao buscar empresas: {str(e)}')
+            Label(empresas_inner, text="Erro ao carregar empresas", 
+                  font=('Segoe UI', 10), bg=co1, fg=co4).pack(pady=10)
+    
+    # Frame de preview e ações
+    preview_frame = LabelFrame(scrollable_frame, text="Preview e Ações", 
                               font=('Segoe UI', 12, 'bold'), bg=co1, fg=co0,
                               relief="solid", bd=1)
     preview_frame.pack(fill=BOTH, expand=True, padx=10, pady=5)
     
-    preview_text = Text(preview_frame, height=15, width=80, font=('Segoe UI', 10), bg=co5, fg=co0)
-    preview_text.pack(fill=BOTH, expand=True, padx=10, pady=10)
+    preview_inner = Frame(preview_frame, bg=co1)
+    preview_inner.pack(fill=BOTH, expand=True, padx=10, pady=10)
     
+    # Área de preview
+    Label(preview_inner, text="Preview dos Dados:", font=('Segoe UI', 11, 'bold'), bg=co1, fg=co0).pack(anchor=W, pady=(0,5))
+    
+    preview_text = Text(preview_inner, height=15, width=80, font=('Segoe UI', 9), 
+                       relief='solid', bd=2, bg=co5, fg=co0)
+    preview_text.pack(fill=BOTH, expand=True, pady=5)
+    
+    # Scrollbar para o preview
+    preview_scrollbar = Scrollbar(preview_inner, orient="vertical", command=preview_text.yview)
+    preview_text.configure(yscrollcommand=preview_scrollbar.set)
+    preview_scrollbar.pack(side="right", fill="y")
+    
+    # Funções para preview e geração de PDF
     def carregar_preview():
         cnpj_repis = combo_cnpj_repis.get()
         cnpj_contador = combo_cnpj_contador.get()
@@ -1097,25 +1262,139 @@ Empresa Associada 3: {dados_contador[10] or 'N/A'}
                     'empresa_associada_3': dados_contador_raw[10]
                 }
             
-            # Gerar PDF preenchido
-            arquivo_gerado = processar_preenchimento_pdf_novo(dados_repis, dados_contador)
-            
-            if arquivo_gerado:
-                messagebox.showinfo('Sucesso', f'PDF preenchido gerado: {arquivo_gerado}')
+            # Gerar PDF
+            try:
+                from pdf_filler import processar_preenchimento_pdf_novo
+                arquivo_gerado = processar_preenchimento_pdf_novo(dados_repis, dados_contador)
+                if arquivo_gerado:
+                    messagebox.showinfo('Sucesso', f'PDF gerado com sucesso: {arquivo_gerado}')
+            except Exception as e:
+                messagebox.showerror('Erro', f'Erro ao gerar PDF: {str(e)}')
         else:
             messagebox.showerror('Erro', 'Dados não encontrados para o CNPJ selecionado')
     
-    # Botões
-    button_frame = Frame(selection_inner, bg=co1)
-    button_frame.grid(row=2, column=0, columnspan=5, pady=20)
+    def gerar_pdfs_empresas_selecionadas():
+        """Gera PDFs para todas as empresas selecionadas do contador"""
+        cnpj_contador = combo_contador_empresas.get().strip()
+        
+        if not cnpj_contador:
+            messagebox.showerror('Erro', 'Selecione um contador primeiro')
+            return
+        
+        # Verificar quais empresas estão selecionadas
+        empresas_selecionadas = []
+        for cnpj_empresa, var in empresas_vars.items():
+            if var.get():  # Se checkbox está marcado
+                empresas_selecionadas.append(cnpj_empresa)
+        
+        if not empresas_selecionadas:
+            messagebox.showerror('Erro', 'Selecione pelo menos uma empresa')
+            return
+        
+        # Buscar dados do contador
+        dados_contador_raw = buscar_contador_por_cnpj_ou_nome(cnpj_contador)
+        if not dados_contador_raw:
+            messagebox.showerror('Erro', 'Dados do contador não encontrados')
+            return
+        
+        dados_contador = {
+            'cnpj': dados_contador_raw[0],
+            'nome': dados_contador_raw[1],
+            'municipio': dados_contador_raw[2],
+            'socio': dados_contador_raw[3],
+            'contato': dados_contador_raw[4],
+            'tipo_pessoa': dados_contador_raw[5],
+            'tipo_telefone': dados_contador_raw[6],
+            'empresas_representadas': dados_contador_raw[7],
+            'empresa_associada_1': dados_contador_raw[8],
+            'empresa_associada_2': dados_contador_raw[9],
+            'empresa_associada_3': dados_contador_raw[10]
+        }
+        
+        # Gerar PDF para cada empresa selecionada
+        arquivos_gerados = []
+        erros = []
+        
+        for cnpj_empresa in empresas_selecionadas:
+            try:
+                # Buscar dados da empresa no REPIS
+                dados_repis_raw = buscar_repis_por_cnpj(cnpj_empresa)
+                
+                if dados_repis_raw:
+                    dados_repis = {
+                        'cnpj': dados_repis_raw[0],
+                        'razao_social': dados_repis_raw[1],
+                        'nome_fantasia': dados_repis_raw[2],
+                        'endereco': dados_repis_raw[3],
+                        'complemento': dados_repis_raw[4],
+                        'cep': dados_repis_raw[5],
+                        'email': dados_repis_raw[6],
+                        'bairro': dados_repis_raw[7],
+                        'uf': dados_repis_raw[8],
+                        'municipio': dados_repis_raw[9],
+                        'data_abertura': dados_repis_raw[10],
+                        'nome_solicitante': dados_repis_raw[11],
+                        'solicitante_tipo': dados_repis_raw[12],
+                        'telefone': dados_repis_raw[13],
+                        'email_solicitante': dados_repis_raw[14],
+                        'cpf': dados_repis_raw[15],
+                        'rg': dados_repis_raw[16],
+                        'contador': dados_repis_raw[17],
+                        'telefone_contador': dados_repis_raw[18],
+                        'email_contador': dados_repis_raw[19]
+                    }
+                    
+                    # Gerar PDF
+                    from pdf_filler import processar_preenchimento_pdf_novo
+                    arquivo_gerado = processar_preenchimento_pdf_novo(dados_repis, dados_contador)
+                    if arquivo_gerado:
+                        arquivos_gerados.append(arquivo_gerado)
+                else:
+                    erros.append(f'Dados REPIS não encontrados para CNPJ: {cnpj_empresa}')
+                    
+            except Exception as e:
+                erros.append(f'Erro ao gerar PDF para {cnpj_empresa}: {str(e)}')
+        
+        # Mostrar resultado
+        if arquivos_gerados:
+            resultado = f'PDFs gerados com sucesso ({len(arquivos_gerados)}):\\n'
+            for arquivo in arquivos_gerados:
+                resultado += f'- {arquivo}\\n'
+            
+            if erros:
+                resultado += f'\\nErros encontrados ({len(erros)}):\\n'
+                for erro in erros:
+                    resultado += f'- {erro}\\n'
+            
+            messagebox.showinfo('Resultado', resultado)
+        else:
+            messagebox.showerror('Erro', f'Nenhum PDF foi gerado.\\nErros:\\n' + '\\n'.join(erros))
     
-    btn_preview = criar_botao_moderno(button_frame, "Carregar Preview", carregar_preview, co2, 15)
+    # Botões
+    button_frame = Frame(scrollable_frame, bg=co1)
+    button_frame.pack(fill=X, padx=10, pady=20)
+    
+    # Botões para opção 1 (REPIS individual)
+    Label(button_frame, text="Opção 1 - REPIS Individual:", font=('Segoe UI', 11, 'bold'), bg=co1, fg=co0).pack(anchor=W, pady=(0,5))
+    
+    botoes_opcao1 = Frame(button_frame, bg=co1)
+    botoes_opcao1.pack(fill=X, pady=5)
+    
+    btn_preview = criar_botao_moderno(botoes_opcao1, "Carregar Preview", carregar_preview, co2, 15)
     btn_preview.pack(side=LEFT, padx=5)
     
-    btn_gerar = criar_botao_moderno(button_frame, "Gerar PDF Preenchido", gerar_pdf_preenchido, co3, 20)
+    btn_gerar = criar_botao_moderno(botoes_opcao1, "Gerar PDF Preenchido", gerar_pdf_preenchido, co3, 20)
     btn_gerar.pack(side=LEFT, padx=5)
+    
+    # Botões para opção 2 (Contador e empresas)
+    Label(button_frame, text="Opção 2 - Contador e Empresas:", font=('Segoe UI', 11, 'bold'), bg=co1, fg=co0).pack(anchor=W, pady=(20,5))
+    
+    botoes_opcao2 = Frame(button_frame, bg=co1)
+    botoes_opcao2.pack(fill=X, pady=5)
+    
+    btn_gerar_multiplos = criar_botao_moderno(botoes_opcao2, "Gerar PDFs das Empresas Selecionadas", gerar_pdfs_empresas_selecionadas, co9, 30)
+    btn_gerar_multiplos.pack(side=LEFT, padx=5)
 
-#----- EXPORTAR com design moderno (SEM IMPORTAR)
 def exportar():
     # Limpar frames
     for widget in frame_content.winfo_children():
@@ -1289,6 +1568,15 @@ def empresas():
                 e_telefone_responsavel.insert(0, resultado[15] if resultado[15] else "")
                 e_email_responsavel.delete(0, END)
                 e_email_responsavel.insert(0, resultado[16] if resultado[16] else "")
+                
+                # Buscar contador associado à empresa
+                contadores_associados = buscar_contadores_por_empresa(resultado[0])
+                if contadores_associados:
+                    contador_info = f"{contadores_associados[0][0]} - {contadores_associados[0][1]}"
+                    combo_contador.set(contador_info)
+                else:
+                    combo_contador.set("")
+                
                 messagebox.showinfo('Sucesso', 'Dados encontrados!')
             else:
                 messagebox.showwarning('Aviso', 'CNPJ nao encontrado!')
@@ -1380,10 +1668,20 @@ def empresas():
     e_data_abertura.grid(row=row, column=3, sticky=EW, padx=10, pady=5)
     row += 1
 
-    # Linha 8: Situação
+    # Linha 8: Situação e Contador
     Label(form_inner, text="Situação", font=('Segoe UI', 10, 'bold'), bg=co1, fg=co0).grid(row=row, column=0, sticky=W, pady=5)
     combo_situacao = ttk.Combobox(form_inner, width=15, values=["Ativa", "Inativa", "Suspensa", "Baixada"], font=('Segoe UI', 10))
     combo_situacao.grid(row=row, column=1, sticky=W, padx=10, pady=5)
+    
+    # Campo para selecionar contador
+    Label(form_inner, text="Contador", font=('Segoe UI', 10, 'bold'), bg=co1, fg=co0).grid(row=row, column=2, sticky=W, pady=5)
+    
+    # Buscar todos os contadores para popular o combobox
+    dados_contadores = ver_dados_contadores()
+    contadores_opcoes = [f"{item[0]} - {item[1]}" for item in dados_contadores]  # CNPJ - Nome
+    
+    combo_contador = ttk.Combobox(form_inner, width=30, values=contadores_opcoes, font=('Segoe UI', 10))
+    combo_contador.grid(row=row, column=3, sticky=EW, padx=10, pady=5)
     row += 1
 
     # Separador
@@ -1523,6 +1821,14 @@ def empresas():
                     e_telefone_responsavel.insert(0, resultado[15] if resultado[15] else "")
                     e_email_responsavel.delete(0, END)
                     e_email_responsavel.insert(0, resultado[16] if resultado[16] else "")
+                    
+                    # Buscar contador associado à empresa
+                    contadores_associados = buscar_contadores_por_empresa(resultado[0])
+                    if contadores_associados:
+                        contador_info = f"{contadores_associados[0][0]} - {contadores_associados[0][1]}"
+                        combo_contador.set(contador_info)
+                    else:
+                        combo_contador.set("")
                 
             except IndexError:
                 pass
@@ -1559,6 +1865,13 @@ def empresas():
             
         try:
             criar_empresa(lista)
+            
+            # Associar empresa ao contador, se selecionado
+            contador_selecionado = combo_contador.get()
+            if contador_selecionado:
+                cnpj_contador = contador_selecionado.split(" - ")[0]  # Extrair CNPJ do contador
+                associar_contador_empresa(cnpj_contador, cnpj, 'representacao')
+            
             messagebox.showinfo('Sucesso', 'Os dados foram inseridos com sucesso')
             
             # Limpar campos
@@ -1566,6 +1879,7 @@ def empresas():
                 entry.delete(0, END)
             combo_uf.set("")
             combo_situacao.set("")
+            combo_contador.set("")
             
             mostrar_dados_empresas()
         except sqlite3.IntegrityError:
@@ -1603,6 +1917,19 @@ def empresas():
                 return
                 
             atualizar_empresa(cnpj_selecionado, **dados)
+            
+            # Atualizar associação com contador
+            contador_selecionado = combo_contador.get()
+            
+            # Primeiro, desassociar todos os contadores existentes
+            contadores_existentes = buscar_contadores_por_empresa(cnpj_selecionado)
+            for contador in contadores_existentes:
+                desassociar_contador_empresa(contador[0], cnpj_selecionado)
+            
+            # Associar ao novo contador, se selecionado
+            if contador_selecionado:
+                cnpj_contador = contador_selecionado.split(" - ")[0]  # Extrair CNPJ do contador
+                associar_contador_empresa(cnpj_contador, cnpj_selecionado, 'representacao')
             
             messagebox.showinfo('Sucesso', 'Dados atualizados com sucesso')
             mostrar_dados_empresas()
