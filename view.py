@@ -17,7 +17,7 @@ from reportlab.pdfbase.ttfonts import TTFont
 import io
 
 # Conecta ao banco (ou cria, se não existir)
-conn = sqlite3.connect('contadores.db')
+conn = sqlite3.connect("contadores.db")
 cursor = conn.cursor()
 
 # Garante que a tabela contadores exista com os novos campos
@@ -38,7 +38,7 @@ CREATE TABLE IF NOT EXISTS contadores (
 conn.commit()
 
 # Cria a tabela repis se não existir com os novos campos
-conn_repis = sqlite3.connect('repis.db')
+conn_repis = sqlite3.connect("repis.db")
 cursor_repis = conn_repis.cursor()
 
 for col, col_def in [
@@ -79,7 +79,7 @@ CREATE TABLE IF NOT EXISTS repis (
 conn_repis.commit()
 
 # Cria a tabela contadores_novo se não existir com os novos campos
-conn_contadores_novo = sqlite3.connect('contadores_novo.db')
+conn_contadores_novo = sqlite3.connect("contadores_novo.db")
 cursor_contadores_novo = conn_contadores_novo.cursor()
 
 cursor_contadores_novo.execute("""
@@ -99,7 +99,7 @@ CREATE TABLE IF NOT EXISTS contadores_novo (
 conn_contadores_novo.commit()
 
 # Cria a tabela empresas se não existir
-conn_empresas = sqlite3.connect('empresas.db')
+conn_empresas = sqlite3.connect("empresas.db")
 cursor_empresas = conn_empresas.cursor()
 
 cursor_empresas.execute("""
@@ -124,6 +124,40 @@ CREATE TABLE IF NOT EXISTS empresas (
 )
 """)
 conn_empresas.commit()
+
+# Cria a tabela de associação contador-empresa
+conn_relacionamentos = sqlite3.connect("relacionamentos.db")
+cursor_relacionamentos = conn_relacionamentos.cursor()
+
+cursor_relacionamentos.execute("""
+CREATE TABLE IF NOT EXISTS contador_empresa (
+    cnpj_contador TEXT NOT NULL,
+    cnpj_empresa TEXT NOT NULL,
+    tipo_relacao TEXT,
+    ativo INTEGER DEFAULT 1,
+    PRIMARY KEY (cnpj_contador, cnpj_empresa),
+    FOREIGN KEY (cnpj_contador) REFERENCES contadores_novo(cnpj),
+    FOREIGN KEY (cnpj_empresa) REFERENCES empresas(cnpj)
+)
+""")
+conn_relacionamentos.commit()
+
+# Cria a tabela de associação empresa-repis
+cursor_relacionamentos.execute("""
+CREATE TABLE IF NOT EXISTS empresa_repis (
+    cnpj_empresa TEXT NOT NULL,
+    cnpj_repis TEXT NOT NULL,
+    ano_repis TEXT,
+    cnpj_contador_responsavel TEXT,
+    status TEXT,
+    PRIMARY KEY (cnpj_empresa, cnpj_repis),
+    FOREIGN KEY (cnpj_empresa) REFERENCES empresas(cnpj),
+    FOREIGN KEY (cnpj_repis) REFERENCES repis(cnpj),
+    FOREIGN KEY (cnpj_contador_responsavel) REFERENCES contadores_novo(cnpj)
+)
+""")
+conn_relacionamentos.commit()
+
 
 def criar_contador(dados):
     """
@@ -595,26 +629,35 @@ def associar_empresa_repis(cnpj_empresa, cnpj_repis, cnpj_contador_responsavel=N
 def buscar_repis_por_contador(cnpj_contador):
     """Busca todos os REPIS associados a um contador"""
     try:
-        conn_rel = sqlite3.connect('relacionamentos.db')
-        conn_repis = sqlite3.connect('repis.db')
+        conn_rel = sqlite3.connect("relacionamentos.db")
+        conn_repis = sqlite3.connect("repis.db")
         
         cursor_rel = conn_rel.cursor()
         cursor_repis = conn_repis.cursor()
         
-        # Buscar CNPJs dos REPIS onde o contador é responsável
+        # Buscar CNPJs das empresas associadas ao contador através da tabela contador_empresa
         cursor_rel.execute("""
-        SELECT cnpj_repis FROM empresa_repis 
-        WHERE cnpj_contador_responsavel = ? AND status = 'ativo'
+        SELECT cnpj_empresa FROM contador_empresa 
+        WHERE cnpj_contador = ? AND ativo = 1
         """, (cnpj_contador,))
         
-        cnpjs_repis = [row[0] for row in cursor_rel.fetchall()]
+        cnpjs_empresas = [row[0] for row in cursor_rel.fetchall()]
         
         repis_list = []
-        for cnpj in cnpjs_repis:
-            cursor_repis.execute("SELECT * FROM repis WHERE cnpj = ?", (cnpj,))
-            repis = cursor_repis.fetchone()
-            if repis:
-                repis_list.append(repis)
+        for cnpj_empresa in cnpjs_empresas:
+            # Agora, buscar os REPIS associados a cada uma dessas empresas
+            cursor_rel.execute("""
+            SELECT cnpj_repis FROM empresa_repis
+            WHERE cnpj_empresa = ? AND status = 'ativo'
+            """, (cnpj_empresa,))
+            
+            cnpjs_repis_empresa = [row[0] for row in cursor_rel.fetchall()]
+            
+            for cnpj_repis in cnpjs_repis_empresa:
+                cursor_repis.execute("SELECT * FROM repis WHERE cnpj = ?", (cnpj_repis,))
+                repis = cursor_repis.fetchone()
+                if repis:
+                    repis_list.append(repis)
         
         conn_rel.close()
         conn_repis.close()

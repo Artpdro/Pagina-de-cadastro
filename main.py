@@ -1135,7 +1135,7 @@ def preenchimento_pdf():
     # Área de preview
     Label(preview_inner, text="Preview dos Dados:", font=('Segoe UI', 11, 'bold'), bg=co1, fg=co0).pack(anchor=W, pady=(0,5))
     
-    preview_text = Text(preview_inner, height=15, width=80, font=('Segoe UI', 9), 
+    preview_text = Text(preview_inner, font=('Segoe UI', 9), 
                        relief='solid', bd=2, bg=co5, fg=co0)
     preview_text.pack(fill=BOTH, expand=True, pady=5)
     
@@ -1220,6 +1220,34 @@ Empresa Associada 3: {dados_contador[10] or 'N/A'}
         
         if cnpj_contador:
             dados_contador_raw = buscar_contador_por_cnpj_ou_nome(cnpj_contador)
+        
+        if not dados_repis_raw:
+            # Se não encontrou no REPIS, buscar dados da empresa na tabela empresas
+            dados_empresa_raw = buscar_empresa_por_cnpj(cnpj_repis)
+            if dados_empresa_raw:
+                # Criar dados REPIS baseados nos dados da empresa
+                dados_repis_raw = [
+                    dados_empresa_raw[0],  # cnpj
+                    dados_empresa_raw[1],  # razao_social
+                    dados_empresa_raw[2],  # nome_fantasia
+                    dados_empresa_raw[3],  # endereco
+                    dados_empresa_raw[4],  # complemento
+                    dados_empresa_raw[5],  # cep
+                    dados_empresa_raw[6],  # email
+                    dados_empresa_raw[7],  # bairro
+                    dados_empresa_raw[8],  # uf
+                    dados_empresa_raw[9],  # municipio
+                    dados_empresa_raw[12], # data_abertura
+                    dados_empresa_raw[14], # responsavel como nome_solicitante
+                    "Sócio",               # solicitante_tipo padrão
+                    dados_empresa_raw[10], # telefone
+                    dados_empresa_raw[16], # email_responsavel como email_solicitante
+                    "",                    # cpf (vazio)
+                    "",                    # rg (vazio)
+                    dados_contador_raw[1] if dados_contador_raw else "", # contador
+                    dados_contador_raw[4] if dados_contador_raw else "", # telefone_contador
+                    ""                     # email_contador (vazio)
+                ]
         
         if dados_repis_raw:
             # Converter para dicionário
@@ -1319,6 +1347,34 @@ Empresa Associada 3: {dados_contador[10] or 'N/A'}
             try:
                 # Buscar dados da empresa no REPIS
                 dados_repis_raw = buscar_repis_por_cnpj(cnpj_empresa)
+                
+                if not dados_repis_raw:
+                    # Se não encontrou no REPIS, buscar dados da empresa na tabela empresas
+                    dados_empresa_raw = buscar_empresa_por_cnpj(cnpj_empresa)
+                    if dados_empresa_raw:
+                        # Criar dados REPIS baseados nos dados da empresa
+                        dados_repis_raw = [
+                            dados_empresa_raw[0],  # cnpj
+                            dados_empresa_raw[1],  # razao_social
+                            dados_empresa_raw[2],  # nome_fantasia
+                            dados_empresa_raw[3],  # endereco
+                            dados_empresa_raw[4],  # complemento
+                            dados_empresa_raw[5],  # cep
+                            dados_empresa_raw[6],  # email
+                            dados_empresa_raw[7],  # bairro
+                            dados_empresa_raw[8],  # uf
+                            dados_empresa_raw[9],  # municipio
+                            dados_empresa_raw[12], # data_abertura
+                            dados_empresa_raw[14], # responsavel como nome_solicitante
+                            "Sócio",               # solicitante_tipo padrão
+                            dados_empresa_raw[10], # telefone
+                            dados_empresa_raw[16], # email_responsavel como email_solicitante
+                            "",                    # cpf (vazio)
+                            "",                    # rg (vazio)
+                            dados_contador['nome'] if dados_contador else "", # contador
+                            dados_contador['contato'] if dados_contador else "", # telefone_contador
+                            ""                     # email_contador (vazio)
+                        ]
                 
                 if dados_repis_raw:
                     dados_repis = {
