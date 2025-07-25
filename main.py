@@ -673,11 +673,12 @@ def contador():
 
     Label(form_inner, text="Socio da empresa 1", font=('Segoe UI', 10, 'bold'), bg=co1, fg=co0).grid(row=row, column=2, sticky=W, pady=5)
     e_empresa_associada_1 = Entry(form_inner, width=30, font=('Segoe UI', 10), relief='solid', bd=2)
-    e_empresa_associada_1.grid(row=row, column=1, sticky=EW, padx=10, pady=5)
+    e_empresa_associada_1.grid(row=row, column=3, sticky=EW, padx=10, pady=5)
+    row += 1
 
-    Label(form_inner, text="Socio da empresa 2", font=('Segoe UI', 10, 'bold'), bg=co1, fg=co0).grid(row=row, column=2, sticky=W, pady=5)
+    Label(form_inner, text="Socio da empresa 2", font=('Segoe UI', 10, 'bold'), bg=co1, fg=co0).grid(row=row, column=0, sticky=W, pady=5)
     e_empresa_associada_2 = Entry(form_inner, width=30, font=('Segoe UI', 10), relief='solid', bd=2)
-    e_empresa_associada_2.grid(row=row, column=3, sticky=EW, padx=10, pady=5)
+    e_empresa_associada_2.grid(row=row, column=1, sticky=EW, padx=10, pady=5)
     row += 1
 
     Label(form_inner, text="Socio da empresa 3", font=('Segoe UI', 10, 'bold'), bg=co1, fg=co0).grid(row=row, column=0, sticky=W, pady=5)
@@ -750,12 +751,12 @@ def contador():
                 item[2],  # Município
                 item[3],  # Sócio
                 item[4],  # Contato
-                item[5],  # email
-                item[6],  # email
-                item[7] if item[7] else "N/A",  # Empresas Representadas
-                item[8] if item[8] else "N/A",  # Socio da empresa 1
-                item[9] if item[9] else "N/A",  # Socio da empresa 2
-                item[10] if item[10] else "N/A",  # Socio da empresa 3
+                item[10] if item[10] else "N/A",  # email
+                item[5],  # tipo_pessoa
+                item[6] if item[6] else "N/A",  # Empresas Representadas
+                item[7] if item[7] else "N/A",  # Socio da empresa 1
+                item[8] if item[8] else "N/A",  # Socio da empresa 2
+                item[9] if item[9] else "N/A",  # Socio da empresa 3
             ]
             tag = 'evenrow' if i % 2 == 0 else 'oddrow'
             tree_dados_contadores.insert('', 'end', values=item_display, tags=(tag,))
@@ -781,15 +782,17 @@ def contador():
                 e_socio.insert(0, values[3])
                 e_contato.delete(0, END)
                 e_contato.insert(0, values[4])
-                combo_tipo_pessoa.set(values[5])
+                e_email.delete(0, END)
+                e_email.insert(0, values[5] if values[5] != "N/A" else "")
+                combo_tipo_pessoa.set(values[6])
                 e_empresas_representadas.delete(0, END)
-                e_empresas_representadas.insert(0, values[6] if values[6] != "N/A" else "")
+                e_empresas_representadas.insert(0, values[7] if values[7] != "N/A" else "")
                 e_empresa_associada_1.delete(0, END)
-                e_empresa_associada_1.insert(0, values[7] if values[7] != "N/A" else "")
+                e_empresa_associada_1.insert(0, values[8] if values[8] != "N/A" else "")
                 e_empresa_associada_2.delete(0, END)
-                e_empresa_associada_2.insert(0, values[8] if values[8] != "N/A" else "")
+                e_empresa_associada_2.insert(0, values[9] if values[9] != "N/A" else "")
                 e_empresa_associada_3.delete(0, END)
-                e_empresa_associada_3.insert(0, values[9] if values[9] != "N/A" else "")
+                e_empresa_associada_3.insert(0, values[10] if values[10] != "N/A" else "")
                 
             except IndexError:
                 pass

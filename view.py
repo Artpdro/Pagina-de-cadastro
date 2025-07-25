@@ -328,7 +328,7 @@ def atualizar_contador_novo(cnpj, **kwargs):
         return
 
     valores.append(cnpj)
-    sql = f"UPDATE contadores_novo SET {", ".join(campos)} WHERE cnpj = ?"
+    sql = f"UPDATE contadores_novo SET {', '.join(campos)} WHERE cnpj = ?"
     cursor_contadores_novo.execute(sql, valores)
     conn_contadores_novo.commit()
 
@@ -340,7 +340,7 @@ def ver_dados_contadores():
     lista = []
     with conn_contadores_novo:
         cur = conn_contadores_novo.cursor()
-        cur.execute('SELECT cnpj, nome, municipio, socio, contato, email, tipo_pessoa, empresas_representadas, empresa_associada_1, empresa_associada_2, empresa_associada_3, email FROM contadores_novo')
+        cur.execute('SELECT cnpj, nome, municipio, socio, contato, tipo_pessoa, empresas_representadas, empresa_associada_1, empresa_associada_2, empresa_associada_3, email FROM contadores_novo')
         linha = cur.fetchall()
 
         for i in linha:
