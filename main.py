@@ -605,17 +605,16 @@ def contador():
                 e_contato.delete(0, END)
                 e_contato.insert(0, resultado[4])
                 combo_tipo_pessoa.set(resultado[5] if resultado[5] else "")
-                combo_tipo_telefone.set(resultado[6] if resultado[6] else "")
                 e_empresas_representadas.delete(0, END)
-                e_empresas_representadas.insert(0, resultado[7] if resultado[7] else "")
+                e_empresas_representadas.insert(0, resultado[6] if resultado[6] else "")
                 e_empresa_associada_1.delete(0, END)
-                e_empresa_associada_1.insert(0, resultado[8] if resultado[8] else "")
+                e_empresa_associada_1.insert(0, resultado[7] if resultado[7] else "")
                 e_empresa_associada_2.delete(0, END)
-                e_empresa_associada_2.insert(0, resultado[9] if resultado[9] else "")
+                e_empresa_associada_2.insert(0, resultado[8] if resultado[8] else "")
                 e_empresa_associada_3.delete(0, END)
-                e_empresa_associada_3.insert(0, resultado[10] if resultado[10] else "")
+                e_empresa_associada_3.insert(0, resultado[9] if resultado[9] else "")
                 e_email.delete(0, END)
-                e_email.insert(0, resultado[11] if resultado[11] else "")
+                e_email.insert(0, resultado[10] if resultado[10] else "")
                 messagebox.showinfo('Sucesso', 'Dados encontrados!')
             else:
                 messagebox.showwarning('Aviso', 'Registro nao encontrado!')
@@ -668,16 +667,11 @@ def contador():
     combo_tipo_pessoa.grid(row=row, column=3, sticky=W, padx=10, pady=5)
     row += 1
 
-    Label(form_inner, text="Tipo de Telefone *", font=('Segoe UI', 10, 'bold'), bg=co1, fg=co0).grid(row=row, column=0, sticky=W, pady=5)
-    combo_tipo_telefone = ttk.Combobox(form_inner, width=15, values=["Gerente", "Responsavel"], font=('Segoe UI', 10))
-    combo_tipo_telefone.grid(row=row, column=1, sticky=W, padx=10, pady=5)
-
-    Label(form_inner, text="Empresas Representadas", font=('Segoe UI', 10, 'bold'), bg=co1, fg=co0).grid(row=row, column=2, sticky=W, pady=5)
+    Label(form_inner, text="Empresas Representadas", font=('Segoe UI', 10, 'bold'), bg=co1, fg=co0).grid(row=row, column=0, sticky=W, pady=5)
     e_empresas_representadas = Entry(form_inner, width=30, font=('Segoe UI', 10), relief='solid', bd=2)
-    e_empresas_representadas.grid(row=row, column=3, sticky=EW, padx=10, pady=5)
-    row += 1
+    e_empresas_representadas.grid(row=row, column=1, sticky=EW, padx=10, pady=5)
 
-    Label(form_inner, text="Socio da empresa 1", font=('Segoe UI', 10, 'bold'), bg=co1, fg=co0).grid(row=row, column=0, sticky=W, pady=5)
+    Label(form_inner, text="Socio da empresa 1", font=('Segoe UI', 10, 'bold'), bg=co1, fg=co0).grid(row=row, column=2, sticky=W, pady=5)
     e_empresa_associada_1 = Entry(form_inner, width=30, font=('Segoe UI', 10), relief='solid', bd=2)
     e_empresa_associada_1.grid(row=row, column=1, sticky=EW, padx=10, pady=5)
 
@@ -719,7 +713,7 @@ def contador():
                 widget.destroy()
         
         # Cabeçalhos da tabela sem os campos do solicitante
-        list_header = ['CNPJ', 'Nome', 'Município', 'Sócio', 'Contato', 'Tipo Pessoa', 'Tipo Telefone', 'Empresas Representadas', 'Socio da empresa 1', 'Socio da empresa 2', 'Socio da empresa 3', 'Email']
+        list_header = ['CNPJ', 'Nome', 'Município', 'Sócio', 'Contato', 'Email', 'Tipo Pessoa', 'Empresas Representadas', 'Socio da empresa 1', 'Socio da empresa 2', 'Socio da empresa 3']
         df_list = ver_dados_contadores()
 
         global tree_dados_contadores
@@ -742,7 +736,7 @@ def contador():
         tree_frame.grid_columnconfigure(0, weight=1)
 
         # Configurar colunas com larguras otimizadas
-        widths = [120, 180, 120, 120, 120, 100, 100, 150, 150, 150, 150]
+        widths = [100, 130, 100, 120, 120, 100, 80, 100, 120, 120, 120, 120]
         for i, col in enumerate(list_header):
             tree_dados_contadores.heading(col, text=col, anchor=W)
             tree_dados_contadores.column(col, width=widths[i], anchor=W)
@@ -756,13 +750,12 @@ def contador():
                 item[2],  # Município
                 item[3],  # Sócio
                 item[4],  # Contato
-                item[5],  # Tipo Pessoa
-                item[6],  # Tipo Telefone
+                item[5],  # email
+                item[6],  # email
                 item[7] if item[7] else "N/A",  # Empresas Representadas
                 item[8] if item[8] else "N/A",  # Socio da empresa 1
                 item[9] if item[9] else "N/A",  # Socio da empresa 2
                 item[10] if item[10] else "N/A",  # Socio da empresa 3
-                item[11] if item[11] else "N/A"  # Email
             ]
             tag = 'evenrow' if i % 2 == 0 else 'oddrow'
             tree_dados_contadores.insert('', 'end', values=item_display, tags=(tag,))
@@ -789,15 +782,14 @@ def contador():
                 e_contato.delete(0, END)
                 e_contato.insert(0, values[4])
                 combo_tipo_pessoa.set(values[5])
-                combo_tipo_telefone.set(values[6])
                 e_empresas_representadas.delete(0, END)
-                e_empresas_representadas.insert(0, values[7] if values[7] != "N/A" else "")
+                e_empresas_representadas.insert(0, values[6] if values[6] != "N/A" else "")
                 e_empresa_associada_1.delete(0, END)
-                e_empresa_associada_1.insert(0, values[8] if values[8] != "N/A" else "")
+                e_empresa_associada_1.insert(0, values[7] if values[7] != "N/A" else "")
                 e_empresa_associada_2.delete(0, END)
-                e_empresa_associada_2.insert(0, values[9] if values[9] != "N/A" else "")
+                e_empresa_associada_2.insert(0, values[8] if values[8] != "N/A" else "")
                 e_empresa_associada_3.delete(0, END)
-                e_empresa_associada_3.insert(0, values[10] if values[10] != "N/A" else "")
+                e_empresa_associada_3.insert(0, values[9] if values[9] != "N/A" else "")
                 
             except IndexError:
                 pass
@@ -812,16 +804,16 @@ def contador():
         socio = e_socio.get()
         contato = e_contato.get()
         tipo_pessoa = combo_tipo_pessoa.get()
-        tipo_telefone = combo_tipo_telefone.get()
         empresas_representadas = e_empresas_representadas.get()
         empresa_associada_1 = e_empresa_associada_1.get()
         empresa_associada_2 = e_empresa_associada_2.get()
         empresa_associada_3 = e_empresa_associada_3.get()
+        email = e_email.get()
         
-        lista = [cnpj, nome, municipio, socio, contato, tipo_pessoa, tipo_telefone, empresas_representadas, empresa_associada_1, empresa_associada_2, empresa_associada_3]
+        lista = [cnpj, nome, municipio, socio, contato, tipo_pessoa, empresas_representadas, empresa_associada_1, empresa_associada_2, empresa_associada_3, email]
 
         # Verificar campos obrigatórios
-        campos_obrigatorios = [cnpj, nome, municipio, socio, contato, tipo_pessoa, tipo_telefone]
+        campos_obrigatorios = [cnpj, nome, municipio, socio, contato, tipo_pessoa]
         if any(campo == "" for campo in campos_obrigatorios):
             messagebox.showerror('Erro', 'Preencha todos os campos obrigatórios (*)')
             return
@@ -831,10 +823,9 @@ def contador():
             messagebox.showinfo('Sucesso', 'Os dados foram inseridos com sucesso')
 
             # Limpar campos
-            for entry in [e_cnpj, e_nome, e_municipio, e_socio, e_contato, e_empresas_representadas, e_empresa_associada_1, e_empresa_associada_2, e_empresa_associada_3]:
+            for entry in [e_cnpj, e_nome, e_municipio, e_socio, e_contato, e_empresas_representadas, e_empresa_associada_1, e_empresa_associada_2, e_empresa_associada_3, e_email]:
                 entry.delete(0, END)
             combo_tipo_pessoa.set("")
-            combo_tipo_telefone.set("")
 
             mostrar_dados_contadores()
         except sqlite3.IntegrityError:
@@ -851,15 +842,15 @@ def contador():
                 'socio': e_socio.get(),
                 'contato': e_contato.get(),
                 'tipo_pessoa': combo_tipo_pessoa.get(),
-                'tipo_telefone': combo_tipo_telefone.get(),
                 'empresas_representadas': e_empresas_representadas.get(),
                 'empresa_associada_1': e_empresa_associada_1.get(),
                 'empresa_associada_2': e_empresa_associada_2.get(),
-                'empresa_associada_3': e_empresa_associada_3.get()
+                'empresa_associada_3': e_empresa_associada_3.get(),
+                'email': e_email.get()
             }
             
             # Verificar campos obrigatórios
-            campos_obrigatorios = ['nome', 'municipio', 'socio', 'contato', 'tipo_pessoa', 'tipo_telefone']
+            campos_obrigatorios = ['nome', 'municipio', 'socio', 'contato', 'tipo_pessoa']
             if any(dados[campo] == "" for campo in campos_obrigatorios):
                 messagebox.showerror('Erro', 'Preencha todos os campos obrigatórios (*)')
                 return
@@ -981,33 +972,9 @@ def preenchimento_pdf():
     dados_contadores = ver_dados_contadores()
     cnpjs_contadores = [item[0] for item in dados_contadores]
     
-    combo_cnpj_contador = ttk.Combobox(selection_inner, width=25, values=cnpjs_contadores, font=('Segoe UI', 10))
-    combo_cnpj_contador.grid(row=1, column=1, padx=10, pady=5)
-    
-    # Campo de busca ao lado
-    Label(selection_inner, text="OU Buscar:", font=('Segoe UI', 10, 'bold'), bg=co1, fg=co0).grid(row=1, column=2, sticky=W, padx=5, pady=5)
-    e_busca_contador = Entry(selection_inner, width=20, font=('Segoe UI', 10), relief='solid', bd=2)
-    e_busca_contador.grid(row=1, column=3, padx=5, pady=5)
-    
-    def buscar_contador():
-        termo = e_busca_contador.get().strip()
-        if not termo:
-            messagebox.showerror('Erro', 'Digite um termo para buscar')
-            return
-        
-        # Buscar contador por CNPJ ou nome
-        resultado = buscar_contador_por_cnpj_ou_nome(termo)
-        if resultado:
-            combo_cnpj_contador.set(resultado[0])  # Definir o CNPJ encontrado no combo
-            messagebox.showinfo('Sucesso', f'Contador encontrado: {resultado[1]}')
-        else:
-            messagebox.showwarning('Aviso', 'Contador não encontrado!')
-    
-    search_btn_contador = criar_botao_moderno(selection_inner, 'Buscar', buscar_contador, co8)
-    search_btn_contador.grid(row=1, column=4, padx=10)
-    
+ 
     # NOVA FUNCIONALIDADE: Frame de seleção por contador
-    contador_frame = LabelFrame(scrollable_frame, text="Opção 2: Selecionar Contador e Empresas Vinculadas", 
+    contador_frame = LabelFrame(scrollable_frame, text="Opção 2: Selecionar Contador para preenchimento em lote", 
                                font=('Segoe UI', 12, 'bold'), bg=co1, fg=co0,
                                relief="solid", bd=1)
     contador_frame.pack(fill=X, padx=10, pady=5)
@@ -1149,19 +1116,15 @@ def preenchimento_pdf():
     
     # Funções para preview e geração de PDF
     def carregar_preview():
-        cnpj_repis = combo_cnpj_repis.get()
-        cnpj_contador = combo_cnpj_contador.get()
+        cnpjs_empresas = combo_cnpj_empresa.get()
         
-        if not cnpj_repis:
-            messagebox.showerror('Erro', 'Selecione um CNPJ REPIS')
+        if not cnpjs_empresas:
+            messagebox.showerror('Erro', 'Selecione um CNPJ Empresa')
             return
         
         # Buscar dados do REPIS
-        dados_repis = buscar_repis_por_cnpj(cnpj_repis)
+        dados_repis = buscar_repis_por_cnpj(cnpjs_empresas)
         dados_contador = None
-        
-        if cnpj_contador:
-            dados_contador = buscar_contador_por_cnpj_ou_nome(cnpj_contador)
         
         # Montar preview
         preview_text.delete(1.0, END)
@@ -1197,8 +1160,8 @@ Nome: {dados_contador[1] or 'N/A'}
 Município: {dados_contador[2] or 'N/A'}
 Sócio: {dados_contador[3] or 'N/A'}
 Contato: {dados_contador[4] or 'N/A'}
-Tipo de Pessoa: {dados_contador[5] or 'N/A'}
-Tipo de Telefone: {dados_contador[6] or 'N/A'}
+Email: {dados_contador[5] or 'N/A'}
+Tipo de Pessoa: {dados_contador[6] or 'N/A'}
 Empresas Representadas: {dados_contador[7] or 'N/A'}
 Socio da empresa 1: {dados_contador[8] or 'N/A'}
 Socio da empresa 2: {dados_contador[9] or 'N/A'}
@@ -1210,23 +1173,20 @@ Socio da empresa 3: {dados_contador[10] or 'N/A'}
             preview_text.insert(1.0, "Dados não encontrados para o CNPJ selecionado.")
     
     def gerar_pdf_preenchido():
-        cnpj_repis = combo_cnpj_repis.get()
-        cnpj_contador = combo_cnpj_contador.get()
+        cnpjs_empresas = combo_cnpj_empresa.get()
         
-        if not cnpj_repis:
+        if not cnpjs_empresas:
             messagebox.showerror('Erro', 'Selecione um CNPJ REPIS')
             return
         
         # Buscar dados
-        dados_repis_raw = buscar_repis_por_cnpj(cnpj_repis)
+        dados_repis_raw = buscar_repis_por_cnpj(cnpjs_empresas)
         dados_contador_raw = None
         
-        if cnpj_contador:
-            dados_contador_raw = buscar_contador_por_cnpj_ou_nome(cnpj_contador)
         
         if not dados_repis_raw:
             # Se não encontrou no REPIS, buscar dados da empresa na tabela empresas
-            dados_empresa_raw = buscar_empresa_por_cnpj(cnpj_repis)
+            dados_empresa_raw = buscar_empresa_por_cnpj(cnpjs_empresas)
             if dados_empresa_raw:
                 # Criar dados REPIS baseados nos dados da empresa
                 dados_repis_raw = [
@@ -1286,11 +1246,11 @@ Socio da empresa 3: {dados_contador[10] or 'N/A'}
                     'socio': dados_contador_raw[3],
                     'contato': dados_contador_raw[4],
                     'tipo_pessoa': dados_contador_raw[5],
-                    'tipo_telefone': dados_contador_raw[6],
-                    'empresas_representadas': dados_contador_raw[7],
-                    'empresa_associada_1': dados_contador_raw[8],
-                    'empresa_associada_2': dados_contador_raw[9],
-                    'empresa_associada_3': dados_contador_raw[10]
+                    'empresas_representadas': dados_contador_raw[6],
+                    'empresa_associada_1': dados_contador_raw[7],
+                    'empresa_associada_2': dados_contador_raw[8],
+                    'empresa_associada_3': dados_contador_raw[9],
+                    'email': dados_contador_raw[10]
                 }
             
             # Gerar PDF
@@ -1335,11 +1295,11 @@ Socio da empresa 3: {dados_contador[10] or 'N/A'}
             'socio': dados_contador_raw[3],
             'contato': dados_contador_raw[4],
             'tipo_pessoa': dados_contador_raw[5],
-            'tipo_telefone': dados_contador_raw[6],
-            'empresas_representadas': dados_contador_raw[7],
-            'empresa_associada_1': dados_contador_raw[8],
-            'empresa_associada_2': dados_contador_raw[9],
-            'empresa_associada_3': dados_contador_raw[10]
+            'empresas_representadas': dados_contador_raw[6],
+            'empresa_associada_1': dados_contador_raw[7],
+            'empresa_associada_2': dados_contador_raw[8],
+            'empresa_associada_3': dados_contador_raw[9],
+            'email': dados_contador_raw[10]
         }
         
         # Gerar PDF para cada empresa selecionada

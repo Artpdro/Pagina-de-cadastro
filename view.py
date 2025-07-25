@@ -90,7 +90,6 @@ CREATE TABLE IF NOT EXISTS contadores_novo (
     socio               TEXT NOT NULL,
     contato             TEXT NOT NULL,
     tipo_pessoa         TEXT NOT NULL,
-    tipo_telefone       TEXT NOT NULL,
     empresas_representadas TEXT,
     empresa_associada_1 TEXT,
     empresa_associada_2 TEXT,
@@ -299,12 +298,12 @@ def ver_dados_repis():
 
 # Funções para a nova tabela contadores com novos campos
 def criar_contador_novo(dados):
-    cnpj, nome, municipio, socio, contato, tipo_pessoa, tipo_telefone, empresas_representadas, empresa_associada_1, empresa_associada_2, empresa_associada_3, email = dados
+    cnpj, nome, municipio, socio, contato, tipo_pessoa, empresas_representadas, empresa_associada_1, empresa_associada_2, empresa_associada_3, email = dados
     cursor_contadores_novo.execute("""
         INSERT INTO contadores_novo
-          (cnpj, nome, municipio, socio, contato, tipo_pessoa, tipo_telefone, empresas_representadas, empresa_associada_1, empresa_associada_2, empresa_associada_3, email)
-        VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
-    """, (cnpj, nome, municipio, socio, contato, tipo_pessoa, tipo_telefone, empresas_representadas, empresa_associada_1, empresa_associada_2, empresa_associada_3, email)
+          (cnpj, nome, municipio, socio, contato, tipo_pessoa, empresas_representadas, empresa_associada_1, empresa_associada_2, empresa_associada_3, email)
+        VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+    """, (cnpj, nome, municipio, socio, contato, tipo_pessoa, empresas_representadas, empresa_associada_1, empresa_associada_2, empresa_associada_3, email)
     )
     conn_contadores_novo.commit()
 
@@ -341,7 +340,7 @@ def ver_dados_contadores():
     lista = []
     with conn_contadores_novo:
         cur = conn_contadores_novo.cursor()
-        cur.execute('SELECT cnpj, nome, municipio, socio, contato, tipo_pessoa, tipo_telefone, empresas_representadas, empresa_associada_1, empresa_associada_2, empresa_associada_3, email FROM contadores_novo')
+        cur.execute('SELECT cnpj, nome, municipio, socio, contato, email, tipo_pessoa, empresas_representadas, empresa_associada_1, empresa_associada_2, empresa_associada_3, email FROM contadores_novo')
         linha = cur.fetchall()
 
         for i in linha:
@@ -404,7 +403,7 @@ def exportar_para_pdf(tabela):
             nome_arquivo = "repis_dados.pdf"
         elif tabela == "Contadores":
             dados = ver_dados_contadores()
-            headers = ["CNPJ", "Nome", "Município", "Sócio", "Contato", "Tipo Pessoa", "Tipo Telefone", "Empresas Representadas", "Empresa Associada 1", "Empresa Associada 2", "Empresa Associada 3", "Email"]
+            headers = ["CNPJ", "Nome", "Município", "Sócio", "Contato", "email", "Tipo Pessoa", "Empresas Representadas", "Empresa Associada 1", "Empresa Associada 2", "Empresa Associada 3"]
             nome_arquivo = "contadores_dados.pdf"
         elif tabela == "Empresas":
             dados = ver_dados_empresas()
@@ -449,7 +448,7 @@ def exportar_para_word(tabela):
             nome_arquivo = "repis_dados.docx"
         elif tabela == "Contadores":
             dados = ver_dados_contadores()
-            headers = ["CNPJ", "Nome", "Município", "Sócio", "Contato", "Tipo Pessoa", "Tipo Telefone", "Empresas Representadas", "Empresa Associada 1", "Empresa Associada 2", "Empresa Associada 3"]
+            headers = ["CNPJ", "Nome", "Município", "Sócio", "Contato", "email", "Tipo Pessoa", "Empresas Representadas", "Empresa Associada 1", "Empresa Associada 2", "Empresa Associada 3"]
             nome_arquivo = "contadores_dados.docx"
         else:  # Empresas
             dados = ver_dados_empresas()
@@ -487,7 +486,7 @@ def exportar_para_excel(tabela):
             nome_arquivo = "repis_dados.xlsx"
         elif tabela == "Contadores":
             dados = ver_dados_contadores()
-            headers = ["CNPJ", "Nome", "Município", "Sócio", "Contato", "Tipo Pessoa", "Tipo Telefone", "Empresas Representadas", "Empresa Associada 1", "Empresa Associada 2", "Empresa Associada 3"]
+            headers = ["CNPJ", "Nome", "Município", "Sócio", "Contato", "email", "Tipo Pessoa", "Empresas Representadas", "Empresa Associada 1", "Empresa Associada 2", "Empresa Associada 3"]
             nome_arquivo = "contadores_dados.xlsx"
         else:  # Empresas
             dados = ver_dados_empresas()
