@@ -94,7 +94,8 @@ CREATE TABLE IF NOT EXISTS contadores_novo (
     empresas_representadas TEXT,
     empresa_associada_1 TEXT,
     empresa_associada_2 TEXT,
-    empresa_associada_3 TEXT
+    empresa_associada_3 TEXT,
+    email               TEXT
 )""")
 conn_contadores_novo.commit()
 
@@ -298,12 +299,12 @@ def ver_dados_repis():
 
 # Funções para a nova tabela contadores com novos campos
 def criar_contador_novo(dados):
-    cnpj, nome, municipio, socio, contato, tipo_pessoa, tipo_telefone, empresas_representadas, empresa_associada_1, empresa_associada_2, empresa_associada_3 = dados
+    cnpj, nome, municipio, socio, contato, tipo_pessoa, tipo_telefone, empresas_representadas, empresa_associada_1, empresa_associada_2, empresa_associada_3, email = dados
     cursor_contadores_novo.execute("""
         INSERT INTO contadores_novo
-          (cnpj, nome, municipio, socio, contato, tipo_pessoa, tipo_telefone, empresas_representadas, empresa_associada_1, empresa_associada_2, empresa_associada_3)
-        VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
-    """, (cnpj, nome, municipio, socio, contato, tipo_pessoa, tipo_telefone, empresas_representadas, empresa_associada_1, empresa_associada_2, empresa_associada_3)
+          (cnpj, nome, municipio, socio, contato, tipo_pessoa, tipo_telefone, empresas_representadas, empresa_associada_1, empresa_associada_2, empresa_associada_3, email)
+        VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+    """, (cnpj, nome, municipio, socio, contato, tipo_pessoa, tipo_telefone, empresas_representadas, empresa_associada_1, empresa_associada_2, empresa_associada_3, email)
     )
     conn_contadores_novo.commit()
 
@@ -315,8 +316,12 @@ def atualizar_contador_novo(cnpj, **kwargs):
     campos = []
     valores = []
 
+    if 'email' in kwargs and kwargs['email'] is not None:
+        campos.append("email = ?")
+        valores.append(kwargs['email'])
+
     for campo, valor in kwargs.items():
-        if valor is not None:
+        if campo != 'email' and valor is not None:
             campos.append(f"{campo} = ?")
             valores.append(valor)
 
@@ -324,7 +329,7 @@ def atualizar_contador_novo(cnpj, **kwargs):
         return
 
     valores.append(cnpj)
-    sql = f"UPDATE contadores_novo SET {', '.join(campos)} WHERE cnpj = ?"
+    sql = f"UPDATE contadores_novo SET {", ".join(campos)} WHERE cnpj = ?"
     cursor_contadores_novo.execute(sql, valores)
     conn_contadores_novo.commit()
 
@@ -336,7 +341,7 @@ def ver_dados_contadores():
     lista = []
     with conn_contadores_novo:
         cur = conn_contadores_novo.cursor()
-        cur.execute('SELECT cnpj, nome, municipio, socio, contato, tipo_pessoa, tipo_telefone, empresas_representadas, empresa_associada_1, empresa_associada_2, empresa_associada_3 FROM contadores_novo')
+        cur.execute('SELECT cnpj, nome, municipio, socio, contato, tipo_pessoa, tipo_telefone, empresas_representadas, empresa_associada_1, empresa_associada_2, empresa_associada_3, email FROM contadores_novo')
         linha = cur.fetchall()
 
         for i in linha:
@@ -395,15 +400,15 @@ def exportar_para_pdf(tabela):
     try:
         if tabela == "REPIS":
             dados = ver_dados_repis()
-            headers = ['CNPJ', 'Razão Social', 'Nome Fantasia', 'Endereço', 'Complemento', 'CEP', 'E-mail', 'Bairro', 'UF', 'Município', 'Data Abertura', 'Nome Solicitante', 'Tipo Solicitante', 'Telefone', 'Email Solicitante', 'CPF', 'RG', 'Contador', 'Tel. Contador', 'Email Contador']
+            headers = ["CNPJ", "Razão Social", "Nome Fantasia", "Endereço", "Complemento", "CEP", "E-mail", "Bairro", "UF", "Município", "Data Abertura", "Nome Solicitante", "Tipo Solicitante", "Telefone", "Email Solicitante", "CPF", "RG", "Contador", "Tel. Contador", "Email Contador"]
             nome_arquivo = "repis_dados.pdf"
         elif tabela == "Contadores":
             dados = ver_dados_contadores()
-            headers = ['CNPJ', 'Nome', 'Município', 'Sócio', 'Contato', 'Tipo Pessoa', 'Tipo Telefone', 'Empresas Representadas', 'Empresa Associada 1', 'Empresa Associada 2', 'Empresa Associada 3']
+            headers = ["CNPJ", "Nome", "Município", "Sócio", "Contato", "Tipo Pessoa", "Tipo Telefone", "Empresas Representadas", "Empresa Associada 1", "Empresa Associada 2", "Empresa Associada 3", "Email"]
             nome_arquivo = "contadores_dados.pdf"
-        else:  # Empresas
+        elif tabela == "Empresas":
             dados = ver_dados_empresas()
-            headers = ['CNPJ', 'Razão Social', 'Nome Fantasia', 'Endereço', 'Complemento', 'CEP', 'E-mail', 'Bairro', 'UF', 'Município', 'Telefone', 'Atividade Principal', 'Data Abertura', 'Situação', 'Responsável', 'Tel. Responsável', 'Email Responsável']
+            headers = ["CNPJ", "Razão Social", "Nome Fantasia", "Endereço", "Complemento", "CEP", "E-mail", "Bairro", "UF", "Município", "Telefone", "Atividade Principal", "Data Abertura", "Situação", "Responsável", "Tel. Responsável", "Email Responsável"]
             nome_arquivo = "empresas_dados.pdf"
         
         doc = SimpleDocTemplate(nome_arquivo, pagesize=letter)
@@ -411,20 +416,20 @@ def exportar_para_pdf(tabela):
         
         # Título
         styles = getSampleStyleSheet()
-        title = Paragraph(f"Relatório - {tabela}", styles['Title'])
+        title = Paragraph(f"Relatório - {tabela}", styles["Title"])
         elements.append(title)
         
         # Tabela
         data = [headers] + dados
         table = Table(data)
         table.setStyle(TableStyle([
-            ('BACKGROUND', (0, 0), (-1, 0), colors.grey),
+            ('BACKGROUND', (0, 0), (-1, 0), colors.grey),     # Linha do cabeçalho
             ('TEXTCOLOR', (0, 0), (-1, 0), colors.whitesmoke),
             ('ALIGN', (0, 0), (-1, -1), 'CENTER'),
             ('FONTNAME', (0, 0), (-1, 0), 'Helvetica-Bold'),
             ('FONTSIZE', (0, 0), (-1, 0), 8),
             ('BOTTOMPADDING', (0, 0), (-1, 0), 12),
-            ('BACKGROUND', (0, 1), (-1, -1), colors.beige),
+            ('BACKGROUND', (0, 1), (-1, -1), colors.beige),   # Corpo da tabela
             ('GRID', (0, 0), (-1, -1), 1, colors.black)
         ]))
         

@@ -614,6 +614,8 @@ def contador():
                 e_empresa_associada_2.insert(0, resultado[9] if resultado[9] else "")
                 e_empresa_associada_3.delete(0, END)
                 e_empresa_associada_3.insert(0, resultado[10] if resultado[10] else "")
+                e_email.delete(0, END)
+                e_email.insert(0, resultado[11] if resultado[11] else "")
                 messagebox.showinfo('Sucesso', 'Dados encontrados!')
             else:
                 messagebox.showwarning('Aviso', 'Registro nao encontrado!')
@@ -670,22 +672,27 @@ def contador():
     combo_tipo_telefone = ttk.Combobox(form_inner, width=15, values=["Gerente", "Responsavel"], font=('Segoe UI', 10))
     combo_tipo_telefone.grid(row=row, column=1, sticky=W, padx=10, pady=5)
 
-    Label(form_inner, text="Empresas Representadas", font=('Segoe UI', 10, 'bold'), bg=co1, fg=co0).grid(row=row, column=0, sticky=W, pady=5)
+    Label(form_inner, text="Empresas Representadas", font=('Segoe UI', 10, 'bold'), bg=co1, fg=co0).grid(row=row, column=2, sticky=W, pady=5)
     e_empresas_representadas = Entry(form_inner, width=30, font=('Segoe UI', 10), relief='solid', bd=2)
-    e_empresas_representadas.grid(row=row, column=1, sticky=EW, padx=10, pady=5)
-
-    Label(form_inner, text="Empresa Associada 1", font=('Segoe UI', 10, 'bold'), bg=co1, fg=co0).grid(row=row, column=2, sticky=W, pady=5)
-    e_empresa_associada_1 = Entry(form_inner, width=30, font=('Segoe UI', 10), relief='solid', bd=2)
-    e_empresa_associada_1.grid(row=row, column=3, sticky=EW, padx=10, pady=5)
+    e_empresas_representadas.grid(row=row, column=3, sticky=EW, padx=10, pady=5)
     row += 1
 
-    Label(form_inner, text="Empresa Associada 2", font=('Segoe UI', 10, 'bold'), bg=co1, fg=co0).grid(row=row, column=0, sticky=W, pady=5)
-    e_empresa_associada_2 = Entry(form_inner, width=30, font=('Segoe UI', 10), relief='solid', bd=2)
-    e_empresa_associada_2.grid(row=row, column=1, sticky=EW, padx=10, pady=5)
+    Label(form_inner, text="Socio da empresa 1", font=('Segoe UI', 10, 'bold'), bg=co1, fg=co0).grid(row=row, column=0, sticky=W, pady=5)
+    e_empresa_associada_1 = Entry(form_inner, width=30, font=('Segoe UI', 10), relief='solid', bd=2)
+    e_empresa_associada_1.grid(row=row, column=1, sticky=EW, padx=10, pady=5)
 
-    Label(form_inner, text="Empresa Associada 3", font=('Segoe UI', 10, 'bold'), bg=co1, fg=co0).grid(row=row, column=2, sticky=W, pady=5)
+    Label(form_inner, text="Socio da empresa 2", font=('Segoe UI', 10, 'bold'), bg=co1, fg=co0).grid(row=row, column=2, sticky=W, pady=5)
+    e_empresa_associada_2 = Entry(form_inner, width=30, font=('Segoe UI', 10), relief='solid', bd=2)
+    e_empresa_associada_2.grid(row=row, column=3, sticky=EW, padx=10, pady=5)
+    row += 1
+
+    Label(form_inner, text="Socio da empresa 3", font=('Segoe UI', 10, 'bold'), bg=co1, fg=co0).grid(row=row, column=0, sticky=W, pady=5)
     e_empresa_associada_3 = Entry(form_inner, width=30, font=('Segoe UI', 10), relief='solid', bd=2)
-    e_empresa_associada_3.grid(row=row, column=3, sticky=EW, padx=10, pady=5)
+    e_empresa_associada_3.grid(row=row, column=1, sticky=EW, padx=10, pady=5)
+
+    Label(form_inner, text="Email", font=('Segoe UI', 10, 'bold'), bg=co1, fg=co0).grid(row=row, column=2, sticky=W, pady=5)
+    e_email = Entry(form_inner, width=30, font=('Segoe UI', 10), relief='solid', bd=2)
+    e_email.grid(row=row, column=3, sticky=EW, padx=10, pady=5)
     row += 1
 
     row += 1
@@ -712,7 +719,7 @@ def contador():
                 widget.destroy()
         
         # Cabeçalhos da tabela sem os campos do solicitante
-        list_header = ['CNPJ', 'Nome', 'Município', 'Sócio', 'Contato', 'Tipo Pessoa', 'Tipo Telefone', 'Empresas Representadas', 'Empresa Associada 1', 'Empresa Associada 2', 'Empresa Associada 3']
+        list_header = ['CNPJ', 'Nome', 'Município', 'Sócio', 'Contato', 'Tipo Pessoa', 'Tipo Telefone', 'Empresas Representadas', 'Socio da empresa 1', 'Socio da empresa 2', 'Socio da empresa 3', 'Email']
         df_list = ver_dados_contadores()
 
         global tree_dados_contadores
@@ -752,9 +759,10 @@ def contador():
                 item[5],  # Tipo Pessoa
                 item[6],  # Tipo Telefone
                 item[7] if item[7] else "N/A",  # Empresas Representadas
-                item[8] if item[8] else "N/A",  # Empresa Associada 1
-                item[9] if item[9] else "N/A",  # Empresa Associada 2
-                item[10] if item[10] else "N/A"  # Empresa Associada 3
+                item[8] if item[8] else "N/A",  # Socio da empresa 1
+                item[9] if item[9] else "N/A",  # Socio da empresa 2
+                item[10] if item[10] else "N/A",  # Socio da empresa 3
+                item[11] if item[11] else "N/A"  # Email
             ]
             tag = 'evenrow' if i % 2 == 0 else 'oddrow'
             tree_dados_contadores.insert('', 'end', values=item_display, tags=(tag,))
@@ -925,8 +933,7 @@ def preenchimento_pdf():
     title_frame = Frame(scrollable_frame, bg=co8, height=50)
     title_frame.pack(fill=X, padx=5, pady=5)
     title_frame.pack_propagate(False)
-    
-    section_title = Label(title_frame, text="Preenchimento Automático de PDF REPIS", 
+    section_title = Label(title_frame, text="Preenchimento Automático de PDF Empresa", 
                          font=('Segoe UI', 16, 'bold'), bg=co8, fg=co1)
     section_title.pack(pady=12)
     
@@ -940,41 +947,37 @@ def preenchimento_pdf():
     selection_inner.pack(fill=X, padx=10, pady=10)
     
     # Seleção de CNPJ REPIS
-    Label(selection_inner, text="Selecionar CNPJ REPIS:", font=('Segoe UI', 10, 'bold'), bg=co1, fg=co0).grid(row=0, column=0, sticky=W, padx=5, pady=5)
+    Label(selection_inner, text="Selecionar CNPJ Empresa:", font=('Segoe UI', 10, 'bold'), bg=co1, fg=co0).grid(row=0, column=0, sticky=W, padx=5, pady=5)
     
-    # Buscar todos os CNPJs do REPIS
-    dados_repis = ver_dados_repis()
-    cnpjs_repis = [item[0] for item in dados_repis]
+    # Buscar todos os CNPJs das empresas
+    dados_empresas = ver_dados_empresas()
+    cnpjs_empresas = [item[0] for item in dados_empresas]
     
-    combo_cnpj_repis = ttk.Combobox(selection_inner, width=25, values=cnpjs_repis, font=('Segoe UI', 10))
-    combo_cnpj_repis.grid(row=0, column=1, padx=10, pady=5)
+    combo_cnpj_empresa = ttk.Combobox(selection_inner, width=25, values=cnpjs_empresas, font=('Segoe UI', 10))
+    combo_cnpj_empresa.grid(row=0, column=1, padx=10, pady=5)
     
     # Campo de busca ao lado
     Label(selection_inner, text="OU Buscar:", font=('Segoe UI', 10, 'bold'), bg=co1, fg=co0).grid(row=0, column=2, sticky=W, padx=5, pady=5)
     e_busca_repis = Entry(selection_inner, width=20, font=('Segoe UI', 10), relief='solid', bd=2)
     e_busca_repis.grid(row=0, column=3, padx=5, pady=5)
     
-    def buscar_repis():
+    def buscar_empresa():
         termo = e_busca_repis.get().strip()
         if not termo:
             messagebox.showerror('Erro', 'Digite um termo para buscar')
             return
         
-        # Buscar no REPIS
-        resultado = buscar_repis_por_cnpj(termo)
+        # Buscar na tabela de empresas
+        resultado = buscar_empresa_por_cnpj(termo)
         if resultado:
-            combo_cnpj_repis.set(resultado[0])  # Definir o CNPJ encontrado no combo
-            messagebox.showinfo('Sucesso', f'REPIS encontrado: {resultado[1]}')
+            combo_cnpj_empresa.set(resultado[0])  # Definir o CNPJ encontrado no combo
+            messagebox.showinfo('Sucesso', f'Empresa encontrada: {resultado[1]}')
         else:
-            messagebox.showwarning('Aviso', 'REPIS não encontrado!')
-    
-    search_btn_repis = criar_botao_moderno(selection_inner, 'Buscar', buscar_repis, co8)
+            messagebox.showwarning('Aviso', 'Empresa não encontrada!')
+    search_btn_repis = criar_botao_moderno(selection_inner, 'Buscar', buscar_empresa, co8)
     search_btn_repis.grid(row=0, column=4, padx=10)
     
-    # Seleção de CNPJ Contador (opcional)
-    Label(selection_inner, text="Selecionar CNPJ Contador (opcional):", font=('Segoe UI', 10, 'bold'), bg=co1, fg=co0).grid(row=1, column=0, sticky=W, padx=5, pady=5)
-    
-    # Buscar todos os CNPJs dos contadores
+
     dados_contadores = ver_dados_contadores()
     cnpjs_contadores = [item[0] for item in dados_contadores]
     
@@ -1197,9 +1200,9 @@ Contato: {dados_contador[4] or 'N/A'}
 Tipo de Pessoa: {dados_contador[5] or 'N/A'}
 Tipo de Telefone: {dados_contador[6] or 'N/A'}
 Empresas Representadas: {dados_contador[7] or 'N/A'}
-Empresa Associada 1: {dados_contador[8] or 'N/A'}
-Empresa Associada 2: {dados_contador[9] or 'N/A'}
-Empresa Associada 3: {dados_contador[10] or 'N/A'}
+Socio da empresa 1: {dados_contador[8] or 'N/A'}
+Socio da empresa 2: {dados_contador[9] or 'N/A'}
+Socio da empresa 3: {dados_contador[10] or 'N/A'}
 """
             
             preview_text.insert(1.0, preview_content)
@@ -2036,3 +2039,5 @@ def control(i):
 repis()
 
 janela.mainloop()
+
+
