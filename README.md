@@ -65,10 +65,4 @@ build_exe.bat
 * 📑 **PDF**: Ajuste `pdf_mapping.py`.
 * 🖌️ **GUI**: Modifique estilos em `view.py`.
 
-## 📝 Licença
-
-Este projeto é licenciado sob MIT. Veja `LICENSE`.
-
----
-
 *Desenvolvido por Arthur Pedro 🌟*
