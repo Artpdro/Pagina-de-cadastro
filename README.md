@@ -1,5 +1,3 @@
-&#x20; \[]
-
 # 🚀 Página de Cadastro
 
 Bem-vindo à **Página de Cadastro**! Esta aplicação desktop em Python permite gerenciar contadores, empresas e gerar relatórios em PDF.
