@@ -64,16 +64,16 @@ frame_data_display.grid(row=5, column=0, pady=0, padx=20, sticky=NSEW)
 # Header com logo e titulo estilizado
 try:
     app_lg = Image.open('logo.png')
-    app_lg = app_lg.resize((60, 60))
+    app_lg = app_lg.resize((120, 60))
     app_lg = ImageTk.PhotoImage(app_lg)
     logo_label = Label(frame_header, image=app_lg, bg=co2)
     logo_label.place(x=20, y=10)
 except:
     pass
 
-title_label = Label(frame_header, text="Sistema Avancado de Cadastro", 
-                   font=('Segoe UI', 22, 'bold'), bg=co2, fg=co1)
-title_label.place(x=100, y=15)
+title_label = Label(frame_header, text="Sistema Sindnorte", 
+                   font=('Segoe UI', 26, 'bold'), bg=co2, fg=co1)
+title_label.place(x=150, y=15)
 
 # Variavel para controlar a aba ativa
 aba_ativa = StringVar()
@@ -100,13 +100,13 @@ def atualizar_navegacao():
     btn_repis = criar_botao_nav("REPIS", lambda: control('repis'), aba_ativa.get() == "repis")
     btn_repis.pack(side=LEFT, padx=10, pady=20)
     
-    btn_contador = criar_botao_nav("Contador", lambda: control('contador'), aba_ativa.get() == "contador")
+    btn_contador = criar_botao_nav("Contadores", lambda: control('contador'), aba_ativa.get() == "contador")
     btn_contador.pack(side=LEFT, padx=10, pady=20)
     
     btn_empresas = criar_botao_nav("Empresas", lambda: control('empresas'), aba_ativa.get() == "empresas")
     btn_empresas.pack(side=LEFT, padx=10, pady=20)
     
-    btn_preenchimento = criar_botao_nav("Preenchimento PDF", lambda: control('preenchimento'), aba_ativa.get() == "preenchimento")
+    btn_preenchimento = criar_botao_nav("Preencher REPIS", lambda: control('preenchimento'), aba_ativa.get() == "preenchimento")
     btn_preenchimento.pack(side=LEFT, padx=10, pady=20)
     
     btn_salvar = criar_botao_nav("Exportar", lambda: control('salvar'), aba_ativa.get() == "salvar")
@@ -927,7 +927,7 @@ def preenchimento_pdf():
     title_frame = Frame(scrollable_frame, bg=co8, height=50)
     title_frame.pack(fill=X, padx=5, pady=5)
     title_frame.pack_propagate(False)
-    section_title = Label(title_frame, text="Preenchimento Automático de PDF Empresa", 
+    section_title = Label(title_frame, text="Preenchimento Automático de REPIS", 
                          font=('Segoe UI', 16, 'bold'), bg=co8, fg=co1)
     section_title.pack(pady=12)
     
