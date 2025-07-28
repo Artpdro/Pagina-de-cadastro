@@ -337,14 +337,26 @@ def excluir_contador_novo(cnpj):
     conn_contadores_novo.commit()
 
 def ver_dados_contadores():
+    """
+    Retorna todos os contadores da tabela contadores (dados migrados da planilha Excel)
+    """
     lista = []
-    with conn_contadores_novo:
-        cur = conn_contadores_novo.cursor()
-        cur.execute('SELECT cnpj, nome, municipio, socio, contato, tipo_pessoa, empresas_representadas, empresa_associada_1, empresa_associada_2, empresa_associada_3, email FROM contadores_novo')
-        linha = cur.fetchall()
+    conn_contadores = sqlite3.connect("contadores.db")
+    cur = conn_contadores.cursor()
+    
+    # Buscar dados da tabela contadores (migrados da planilha)
+    cur.execute("""
+    SELECT cnpj, razao_social, municipio, nome_socio, contato, 
+           tipo_pessoa, email, email, email, email, email 
+    FROM contadores 
+    ORDER BY razao_social
+    """)
+    linha = cur.fetchall()
 
-        for i in linha:
-            lista.append(i)
+    for i in linha:
+        lista.append(i)
+    
+    conn_contadores.close()
     return lista
 
 # Funções para a tabela empresas
