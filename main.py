@@ -168,14 +168,14 @@ def repis():
     search_inner = Frame(search_frame, bg=co1)
     search_inner.pack(fill=X, padx=10, pady=10)
     
-    Label(search_inner, text="CNPJ:", font=('Segoe UI', 10, 'bold'), bg=co1, fg=co0).grid(row=0, column=0, sticky=W, padx=5)
+    Label(search_inner, text="CNPJ ou Nome:", font=('Segoe UI', 10, 'bold'), bg=co1, fg=co0).grid(row=0, column=0, sticky=W, padx=5)
     e_pesquisa = Entry(search_inner, width=25, font=('Segoe UI', 10), relief='solid', bd=2)
     e_pesquisa.grid(row=0, column=1, padx=10, pady=5)
     
     def pesquisar_cnpj():
-        cnpj = e_pesquisa.get()
-        if cnpj:
-            resultado = buscar_repis_por_cnpj(cnpj)
+        termo = e_pesquisa.get()
+        if termo:
+            resultado = buscar_repis_por_cnpj_ou_nome(termo)
             if resultado:
                 # Preencher todos os campos
                 e_cnpj.delete(0, END)
@@ -218,9 +218,9 @@ def repis():
                 e_email_contador.insert(0, resultado[19] if resultado[19] else "")
                 messagebox.showinfo('Sucesso', 'Dados encontrados!')
             else:
-                messagebox.showwarning('Aviso', 'CNPJ nao encontrado!')
+                messagebox.showwarning('Aviso', 'Registro não encontrado!')
         else:
-            messagebox.showerror('Erro', 'Digite um CNPJ para pesquisar')
+            messagebox.showerror('Erro', 'Digite um CNPJ ou nome para pesquisar')
 
     search_btn = criar_botao_moderno(search_inner, 'Pesquisar', pesquisar_cnpj, co2)
     search_btn.grid(row=0, column=2, padx=10)
@@ -943,11 +943,10 @@ def preenchimento_pdf():
     # Seleção de CNPJ REPIS
     Label(selection_inner, text="Selecionar CNPJ Empresa:", font=('Segoe UI', 10, 'bold'), bg=co1, fg=co0).grid(row=0, column=0, sticky=W, padx=5, pady=5)
     
-    # Buscar todos os CNPJs das empresas
-    dados_empresas = ver_dados_empresas()
-    cnpjs_empresas = [item[0] for item in dados_empresas]
+    # Buscar todos os CNPJs das empresas com nome
+    empresas_combo_list = listar_todas_empresas_para_combo()
     
-    combo_cnpj_empresa = ttk.Combobox(selection_inner, width=25, values=cnpjs_empresas, font=('Segoe UI', 10))
+    combo_cnpj_empresa = ttk.Combobox(selection_inner, width=50, values=empresas_combo_list, font=('Segoe UI', 10))
     combo_cnpj_empresa.grid(row=0, column=1, padx=10, pady=5)
     
     # Campo de busca ao lado
@@ -961,10 +960,10 @@ def preenchimento_pdf():
             messagebox.showerror('Erro', 'Digite um termo para buscar')
             return
         
-        # Buscar na tabela de empresas
-        resultado = buscar_empresa_por_cnpj(termo)
+        # Buscar na tabela de empresas por CNPJ ou nome
+        resultado = buscar_empresa_por_cnpj_ou_nome(termo)
         if resultado:
-            combo_cnpj_empresa.set(resultado[0])  # Definir o CNPJ encontrado no combo
+            combo_cnpj_empresa.set(f"{resultado[0]} - {resultado[1]}")  # Definir o CNPJ e nome encontrado no combo
             messagebox.showinfo('Sucesso', f'Empresa encontrada: {resultado[1]}')
         else:
             messagebox.showwarning('Aviso', 'Empresa não encontrada!')
@@ -972,8 +971,8 @@ def preenchimento_pdf():
     search_btn_repis.grid(row=0, column=4, padx=10)
     
 
-    dados_contadores = ver_dados_contadores()
-    cnpjs_contadores = [item[0] for item in dados_contadores]
+    # Buscar todos os contadores com nome
+    contadores_combo_list = listar_todos_contadores_para_combo()
     
  
     # NOVA FUNCIONALIDADE: Frame de seleção por contador
@@ -988,7 +987,7 @@ def preenchimento_pdf():
     # Seleção de contador
     Label(contador_inner, text="Selecionar Contador:", font=('Segoe UI', 10, 'bold'), bg=co1, fg=co0).grid(row=0, column=0, sticky=W, padx=5, pady=5)
     
-    combo_contador_empresas = ttk.Combobox(contador_inner, width=40, values=cnpjs_contadores, font=('Segoe UI', 10))
+    combo_contador_empresas = ttk.Combobox(contador_inner, width=50, values=contadores_combo_list, font=('Segoe UI', 10))
     combo_contador_empresas.grid(row=0, column=1, padx=10, pady=5)
     
     # Campo de busca para contador
@@ -1005,7 +1004,7 @@ def preenchimento_pdf():
         # Buscar contador por CNPJ ou nome
         resultado = buscar_contador_por_cnpj_ou_nome(termo)
         if resultado:
-            combo_contador_empresas.set(resultado[0])  # Definir o CNPJ encontrado no combo
+            combo_contador_empresas.set(f"{resultado[0]} - {resultado[1]}")  # Definir o CNPJ e nome encontrado no combo
             carregar_empresas_contador()  # Carregar empresas automaticamente
             messagebox.showinfo('Sucesso', f'Contador encontrado: {resultado[1]}')
         else:
@@ -1038,11 +1037,14 @@ def preenchimento_pdf():
         empresas_vars.clear()
         empresas_checkboxes.clear()
         
-        cnpj_contador = combo_contador_empresas.get().strip()
-        if not cnpj_contador:
+        contador_selecionado = combo_contador_empresas.get().strip()
+        if not contador_selecionado:
             Label(empresas_inner, text="Selecione um contador para ver as empresas vinculadas", 
                   font=('Segoe UI', 10), bg=co1, fg=co0).pack(pady=10)
             return
+        
+        # Extrair CNPJ do formato "CNPJ - Nome"
+        cnpj_contador = contador_selecionado.split(' - ')[0] if ' - ' in contador_selecionado else contador_selecionado
         
         # Buscar empresas vinculadas ao contador
         try:
@@ -1119,14 +1121,17 @@ def preenchimento_pdf():
     
     # Funções para preview e geração de PDF
     def carregar_preview():
-        cnpjs_empresas = combo_cnpj_empresa.get()
+        empresa_selecionada = combo_cnpj_empresa.get()
         
-        if not cnpjs_empresas:
-            messagebox.showerror('Erro', 'Selecione um CNPJ Empresa')
+        if not empresa_selecionada:
+            messagebox.showerror('Erro', 'Selecione uma empresa')
             return
         
+        # Extrair CNPJ do formato "CNPJ - Nome"
+        cnpj_empresa = empresa_selecionada.split(' - ')[0] if ' - ' in empresa_selecionada else empresa_selecionada
+        
         # Buscar dados do REPIS
-        dados_repis = buscar_repis_por_cnpj(cnpjs_empresas)
+        dados_repis = buscar_repis_por_cnpj(cnpj_empresa)
         dados_contador = None
         
         # Montar preview
@@ -1176,20 +1181,23 @@ Socio da empresa 3: {dados_contador[10] or 'N/A'}
             preview_text.insert(1.0, "Dados não encontrados para o CNPJ selecionado.")
     
     def gerar_pdf_preenchido():
-        cnpjs_empresas = combo_cnpj_empresa.get()
+        empresa_selecionada = combo_cnpj_empresa.get()
         
-        if not cnpjs_empresas:
-            messagebox.showerror('Erro', 'Selecione um CNPJ REPIS')
+        if not empresa_selecionada:
+            messagebox.showerror('Erro', 'Selecione uma empresa')
             return
         
+        # Extrair CNPJ do formato "CNPJ - Nome"
+        cnpj_empresa = empresa_selecionada.split(' - ')[0] if ' - ' in empresa_selecionada else empresa_selecionada
+        
         # Buscar dados
-        dados_repis_raw = buscar_repis_por_cnpj(cnpjs_empresas)
+        dados_repis_raw = buscar_repis_por_cnpj(cnpj_empresa)
         dados_contador_raw = None
         
         
         if not dados_repis_raw:
             # Se não encontrou no REPIS, buscar dados da empresa na tabela empresas
-            dados_empresa_raw = buscar_empresa_por_cnpj(cnpjs_empresas)
+            dados_empresa_raw = buscar_empresa_por_cnpj(cnpj_empresa)
             if dados_empresa_raw:
                 # Criar dados REPIS baseados nos dados da empresa
                 dados_repis_raw = [
@@ -1540,7 +1548,7 @@ def empresas():
     section_title.pack(pady=12)
     
     # Frame de pesquisa estilizado
-    search_frame = LabelFrame(scrollable_frame, text="Pesquisa por CNPJ", 
+    search_frame = LabelFrame(scrollable_frame, text="Pesquisa por CNPJ ou Nome", 
                              font=('Segoe UI', 12, 'bold'), bg=co1, fg=co0,
                              relief="solid", bd=1)
     search_frame.pack(fill=X, padx=10, pady=5)
@@ -1548,14 +1556,14 @@ def empresas():
     search_inner = Frame(search_frame, bg=co1)
     search_inner.pack(fill=X, padx=10, pady=10)
     
-    Label(search_inner, text="CNPJ:", font=('Segoe UI', 10, 'bold'), bg=co1, fg=co0).grid(row=0, column=0, sticky=W, padx=5)
+    Label(search_inner, text="CNPJ ou Nome:", font=('Segoe UI', 10, 'bold'), bg=co1, fg=co0).grid(row=0, column=0, sticky=W, padx=5)
     e_pesquisa_emp = Entry(search_inner, width=25, font=('Segoe UI', 10), relief='solid', bd=2)
     e_pesquisa_emp.grid(row=0, column=1, padx=10, pady=5)
     
     def pesquisar_empresa():
-        cnpj = e_pesquisa_emp.get()
-        if cnpj:
-            resultado = buscar_empresa_por_cnpj(cnpj)
+        termo = e_pesquisa_emp.get()
+        if termo:
+            resultado = buscar_empresa_por_cnpj_ou_nome(termo)
             if resultado:
                 # Preencher todos os campos
                 e_cnpj.delete(0, END)
@@ -1590,6 +1598,9 @@ def empresas():
                 e_telefone_responsavel.insert(0, resultado[15] if resultado[15] else "")
                 e_email_responsavel.delete(0, END)
                 e_email_responsavel.insert(0, resultado[16] if resultado[16] else "")
+                combo_situacao_sindicato.set(resultado[17] if resultado[17] else "em dia")
+                e_observacoes.delete(0, END)
+                e_observacoes.insert(0, resultado[18] if resultado[18] else "")
                 
                 # Buscar contador associado à empresa
                 contadores_associados = buscar_contadores_por_empresa(resultado[0])
@@ -1601,9 +1612,9 @@ def empresas():
                 
                 messagebox.showinfo('Sucesso', 'Dados encontrados!')
             else:
-                messagebox.showwarning('Aviso', 'CNPJ nao encontrado!')
+                messagebox.showwarning('Aviso', 'Registro não encontrado!')
         else:
-            messagebox.showerror('Erro', 'Digite um CNPJ para pesquisar')
+            messagebox.showerror('Erro', 'Digite um CNPJ ou nome para pesquisar')
 
     search_btn = criar_botao_moderno(search_inner, 'Pesquisar', pesquisar_empresa, co8)
     search_btn.grid(row=0, column=2, padx=10)
@@ -1725,10 +1736,20 @@ def empresas():
     e_telefone_responsavel.grid(row=row, column=3, sticky=EW, padx=10, pady=5)
     row += 1
 
-    # Linha 10: Email do Responsável
+    # Linha 10: Email do Responsável e Situação com Sindicato
     Label(form_inner, text="Email do Responsável", font=('Segoe UI', 10, 'bold'), bg=co1, fg=co0).grid(row=row, column=0, sticky=W, pady=5)
     e_email_responsavel = Entry(form_inner, width=30, font=('Segoe UI', 10), relief='solid', bd=2)
     e_email_responsavel.grid(row=row, column=1, sticky=EW, padx=10, pady=5)
+
+    Label(form_inner, text="Situação com Sindicato", font=('Segoe UI', 10, 'bold'), bg=co1, fg=co0).grid(row=row, column=2, sticky=W, pady=5)
+    combo_situacao_sindicato = ttk.Combobox(form_inner, width=20, values=["em dia", "em débito", "aguardando pagamento", "outra"], font=('Segoe UI', 10))
+    combo_situacao_sindicato.grid(row=row, column=3, sticky=W, padx=10, pady=5)
+    row += 1
+
+    # Linha 11: Observações
+    Label(form_inner, text="Observações", font=('Segoe UI', 10, 'bold'), bg=co1, fg=co0).grid(row=row, column=0, sticky=W, pady=5)
+    e_observacoes = Entry(form_inner, width=60, font=('Segoe UI', 10), relief='solid', bd=2)
+    e_observacoes.grid(row=row, column=1, columnspan=3, sticky=EW, padx=10, pady=5)
     row += 1
     
     # Botoes com design moderno
@@ -1843,6 +1864,9 @@ def empresas():
                     e_telefone_responsavel.insert(0, resultado[15] if resultado[15] else "")
                     e_email_responsavel.delete(0, END)
                     e_email_responsavel.insert(0, resultado[16] if resultado[16] else "")
+                    combo_situacao_sindicato.set(resultado[17] if resultado[17] else "em dia")
+                    e_observacoes.delete(0, END)
+                    e_observacoes.insert(0, resultado[18] if resultado[18] else "")
                     
                     # Buscar contador associado à empresa
                     contadores_associados = buscar_contadores_por_empresa(resultado[0])
@@ -1876,8 +1900,10 @@ def empresas():
         responsavel = e_responsavel.get()
         telefone_responsavel = e_telefone_responsavel.get()
         email_responsavel = e_email_responsavel.get()
+        situacao_sindicato = combo_situacao_sindicato.get()
+        observacoes = e_observacoes.get()
         
-        lista = [cnpj, razao_social, nome_fantasia, endereco, complemento, cep, email, bairro, uf, municipio, telefone, atividade_principal, data_abertura, situacao, responsavel, telefone_responsavel, email_responsavel]
+        lista = [cnpj, razao_social, nome_fantasia, endereco, complemento, cep, email, bairro, uf, municipio, telefone, atividade_principal, data_abertura, situacao, responsavel, telefone_responsavel, email_responsavel, situacao_sindicato, observacoes]
 
         # Verificar campos obrigatórios
         campos_obrigatorios = [cnpj, razao_social]
@@ -1897,10 +1923,11 @@ def empresas():
             messagebox.showinfo('Sucesso', 'Os dados foram inseridos com sucesso')
             
             # Limpar campos
-            for entry in [e_cnpj, e_razao_social, e_nome_fantasia, e_endereco, e_complemento, e_cep, e_email, e_bairro, e_municipio, e_telefone, e_atividade_principal, e_data_abertura, e_responsavel, e_telefone_responsavel, e_email_responsavel]:
+            for entry in [e_cnpj, e_razao_social, e_nome_fantasia, e_endereco, e_complemento, e_cep, e_email, e_bairro, e_municipio, e_telefone, e_atividade_principal, e_data_abertura, e_responsavel, e_telefone_responsavel, e_email_responsavel, e_observacoes]:
                 entry.delete(0, END)
             combo_uf.set("")
             combo_situacao.set("")
+            combo_situacao_sindicato.set("em dia")
             combo_contador.set("")
             
             mostrar_dados_empresas()
@@ -1929,7 +1956,9 @@ def empresas():
                 'situacao': combo_situacao.get(),
                 'responsavel': e_responsavel.get(),
                 'telefone_responsavel': e_telefone_responsavel.get(),
-                'email_responsavel': e_email_responsavel.get()
+                'email_responsavel': e_email_responsavel.get(),
+                'situacao_sindicato': combo_situacao_sindicato.get(),
+                'observacoes': e_observacoes.get()
             }
             
             # Verificar campos obrigatórios

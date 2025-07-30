@@ -260,6 +260,13 @@ def criar_repis(dados):
     )
     conn_repis.commit()
 
+def buscar_repis_por_cnpj_ou_nome(termo):
+    """
+    Busca REPIS por CNPJ ou Razão Social (busca parcial no nome)
+    """
+    cursor_repis.execute("SELECT * FROM repis WHERE cnpj = ? OR razao_social LIKE ?", (termo, f'%{termo}%'))
+    return cursor_repis.fetchone()
+
 def buscar_repis_por_cnpj(cnpj):
     cursor_repis.execute("SELECT * FROM repis WHERE cnpj = ?", (cnpj,))
     return cursor_repis.fetchone()
@@ -308,8 +315,25 @@ def criar_contador_novo(dados):
     conn_contadores_novo.commit()
 
 def buscar_contador_por_cnpj_ou_nome(termo):
+    """
+    Busca contador por CNPJ ou Nome (busca parcial no nome)
+    """
+    # Primeiro tenta buscar na tabela contadores_novo
     cursor_contadores_novo.execute("SELECT * FROM contadores_novo WHERE cnpj = ? OR nome LIKE ?", (termo, f'%{termo}%'))
-    return cursor_contadores_novo.fetchone()
+    resultado = cursor_contadores_novo.fetchone()
+    
+    if resultado:
+        return resultado
+    
+    # Se não encontrou, busca na tabela contadores original
+    cursor.execute("SELECT cnpj, razao_social, municipio, nome_socio, contato, tipo_pessoa, email, email, email, email, email FROM contadores WHERE cnpj = ? OR razao_social LIKE ?", (termo, f'%{termo}%'))
+    resultado_original = cursor.fetchone()
+    
+    if resultado_original:
+        # Converte para o formato da tabela contadores_novo
+        return (resultado_original[0], resultado_original[1], resultado_original[2], resultado_original[3], resultado_original[4], resultado_original[5], "", "", "", "", resultado_original[6])
+    
+    return None
 
 def atualizar_contador_novo(cnpj, **kwargs):
     campos = []
@@ -338,37 +362,76 @@ def excluir_contador_novo(cnpj):
 
 def ver_dados_contadores():
     """
-    Retorna todos os contadores da tabela contadores (dados migrados da planilha Excel)
+    Retorna todos os contadores das duas tabelas (contadores e contadores_novo)
     """
     lista = []
-    conn_contadores = sqlite3.connect("contadores.db")
-    cur = conn_contadores.cursor()
     
-    # Buscar dados da tabela contadores (migrados da planilha)
-    cur.execute("""
-    SELECT cnpj, razao_social, municipio, nome_socio, contato, 
-           tipo_pessoa, email, email, email, email, email 
-    FROM contadores 
-    ORDER BY razao_social
-    """)
-    linha = cur.fetchall()
-
-    for i in linha:
-        lista.append(i)
+    # Buscar dados da tabela contadores_novo primeiro
+    try:
+        cur_novo = conn_contadores_novo.cursor()
+        cur_novo.execute("""
+        SELECT cnpj, nome, municipio, socio, contato, 
+               tipo_pessoa, empresas_representadas, empresa_associada_1, 
+               empresa_associada_2, empresa_associada_3, email 
+        FROM contadores_novo 
+        ORDER BY nome
+        """)
+        linhas_novo = cur_novo.fetchall()
+        
+        for linha in linhas_novo:
+            lista.append(linha)
+    except Exception as e:
+        print(f"Erro ao buscar contadores_novo: {e}")
     
-    conn_contadores.close()
+    # Buscar dados da tabela contadores original
+    try:
+        cur = conn.cursor()
+        cur.execute("""
+        SELECT cnpj, razao_social, municipio, nome_socio, contato, 
+               tipo_pessoa, email, email, email, email, email 
+        FROM contadores 
+        ORDER BY razao_social
+        """)
+        linhas_original = cur.fetchall()
+        
+        for linha in linhas_original:
+            # Converter para o formato da tabela contadores_novo
+            linha_convertida = (
+                linha[0],  # cnpj
+                linha[1],  # nome (razao_social)
+                linha[2],  # municipio
+                linha[3],  # socio (nome_socio)
+                linha[4],  # contato
+                linha[5] if linha[5] else "N/A",  # tipo_pessoa
+                "N/A",     # empresas_representadas
+                "N/A",     # empresa_associada_1
+                "N/A",     # empresa_associada_2
+                "N/A",     # empresa_associada_3
+                linha[6] if linha[6] else "N/A"   # email
+            )
+            lista.append(linha_convertida)
+    except Exception as e:
+        print(f"Erro ao buscar contadores: {e}")
+    
     return lista
 
 # Funções para a tabela empresas
 def criar_empresa(dados):
-    cnpj, razao_social, nome_fantasia, endereco, complemento, cep, email, bairro, uf, municipio, telefone, atividade_principal, data_abertura, situacao, responsavel, telefone_responsavel, email_responsavel = dados
+    cnpj, razao_social, nome_fantasia, endereco, complemento, cep, email, bairro, uf, municipio, telefone, atividade_principal, data_abertura, situacao, responsavel, telefone_responsavel, email_responsavel, situacao_sindicato, observacoes = dados
     cursor_empresas.execute("""
         INSERT INTO empresas
-          (cnpj, razao_social, nome_fantasia, endereco, complemento, cep, email, bairro, uf, municipio, telefone, atividade_principal, data_abertura, situacao, responsavel, telefone_responsavel, email_responsavel)
-        VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
-    """, (cnpj, razao_social, nome_fantasia, endereco, complemento, cep, email, bairro, uf, municipio, telefone, atividade_principal, data_abertura, situacao, responsavel, telefone_responsavel, email_responsavel)
+          (cnpj, razao_social, nome_fantasia, endereco, complemento, cep, email, bairro, uf, municipio, telefone, atividade_principal, data_abertura, situacao, responsavel, telefone_responsavel, email_responsavel, situacao_sindicato, observacoes)
+        VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+    """, (cnpj, razao_social, nome_fantasia, endereco, complemento, cep, email, bairro, uf, municipio, telefone, atividade_principal, data_abertura, situacao, responsavel, telefone_responsavel, email_responsavel, situacao_sindicato, observacoes)
     )
     conn_empresas.commit()
+
+def buscar_empresa_por_cnpj_ou_nome(termo):
+    """
+    Busca empresa por CNPJ ou Razão Social (busca parcial no nome)
+    """
+    cursor_empresas.execute("SELECT * FROM empresas WHERE cnpj = ? OR razao_social LIKE ?", (termo, f'%{termo}%'))
+    return cursor_empresas.fetchone()
 
 def buscar_empresa_por_cnpj(cnpj):
     cursor_empresas.execute("SELECT * FROM empresas WHERE cnpj = ?", (cnpj,))
@@ -399,11 +462,139 @@ def ver_dados_empresas():
     lista = []
     with conn_empresas:
         cur = conn_empresas.cursor()
-        cur.execute('SELECT cnpj, razao_social, nome_fantasia, endereco, complemento, cep, email, bairro, uf, municipio, telefone, atividade_principal, data_abertura, situacao, responsavel, telefone_responsavel, email_responsavel FROM empresas')
+        cur.execute('SELECT cnpj, razao_social, nome_fantasia, endereco, complemento, cep, email, bairro, uf, municipio, telefone, atividade_principal, data_abertura, situacao, responsavel, telefone_responsavel, email_responsavel, situacao_sindicato, observacoes FROM empresas')
         linha = cur.fetchall()
 
         for i in linha:
             lista.append(i)
+    return lista
+
+# Funções para relacionamentos contador-empresa
+def buscar_empresas_por_contador(cnpj_contador):
+    """
+    Busca todas as empresas vinculadas a um contador
+    """
+    cursor_relacionamentos.execute("""
+        SELECT e.cnpj, e.razao_social, e.nome_fantasia, e.endereco, e.complemento, 
+               e.cep, e.email, e.bairro, e.uf, e.municipio, e.telefone, 
+               e.atividade_principal, e.data_abertura, e.situacao, e.responsavel, 
+               e.telefone_responsavel, e.email_responsavel, e.situacao_sindicato, e.observacoes
+        FROM empresas e
+        INNER JOIN contador_empresa ce ON e.cnpj = ce.cnpj_empresa
+        WHERE ce.cnpj_contador = ? AND ce.ativo = 1
+        ORDER BY e.razao_social
+    """, (cnpj_contador,))
+    return cursor_relacionamentos.fetchall()
+
+def buscar_contadores_por_empresa(cnpj_empresa):
+    """
+    Busca todos os contadores vinculados a uma empresa
+    """
+    cursor_relacionamentos.execute("""
+        SELECT c.cnpj, c.nome, c.municipio, c.socio, c.contato, 
+               c.tipo_pessoa, c.empresas_representadas, c.empresa_associada_1, 
+               c.empresa_associada_2, c.empresa_associada_3, c.email
+        FROM contadores_novo c
+        INNER JOIN contador_empresa ce ON c.cnpj = ce.cnpj_contador
+        WHERE ce.cnpj_empresa = ? AND ce.ativo = 1
+        ORDER BY c.nome
+    """, (cnpj_empresa,))
+    resultado_novo = cursor_relacionamentos.fetchall()
+    
+    # Também buscar na tabela contadores original
+    cursor_relacionamentos.execute("""
+        SELECT c.cnpj, c.razao_social, c.municipio, c.nome_socio, c.contato, 
+               c.tipo_pessoa, c.email, c.email, c.email, c.email, c.email
+        FROM contadores c
+        INNER JOIN contador_empresa ce ON c.cnpj = ce.cnpj_contador
+        WHERE ce.cnpj_empresa = ? AND ce.ativo = 1
+        ORDER BY c.razao_social
+    """, (cnpj_empresa,))
+    resultado_original = cursor_relacionamentos.fetchall()
+    
+    # Converter resultado original para o formato novo
+    resultado_convertido = []
+    for linha in resultado_original:
+        linha_convertida = (
+            linha[0],  # cnpj
+            linha[1],  # nome (razao_social)
+            linha[2],  # municipio
+            linha[3],  # socio (nome_socio)
+            linha[4],  # contato
+            linha[5] if linha[5] else "N/A",  # tipo_pessoa
+            "N/A",     # empresas_representadas
+            "N/A",     # empresa_associada_1
+            "N/A",     # empresa_associada_2
+            "N/A",     # empresa_associada_3
+            linha[6] if linha[6] else "N/A"   # email
+        )
+        resultado_convertido.append(linha_convertida)
+    
+    return resultado_novo + resultado_convertido
+
+def vincular_contador_empresa(cnpj_contador, cnpj_empresa, tipo_relacao="Responsável"):
+    """
+    Vincula um contador a uma empresa
+    """
+    cursor_relacionamentos.execute("""
+        INSERT OR REPLACE INTO contador_empresa 
+        (cnpj_contador, cnpj_empresa, tipo_relacao, ativo)
+        VALUES (?, ?, ?, 1)
+    """, (cnpj_contador, cnpj_empresa, tipo_relacao))
+    conn_relacionamentos.commit()
+
+def desvincular_contador_empresa(cnpj_contador, cnpj_empresa):
+    """
+    Desvincula um contador de uma empresa
+    """
+    cursor_relacionamentos.execute("""
+        UPDATE contador_empresa 
+        SET ativo = 0 
+        WHERE cnpj_contador = ? AND cnpj_empresa = ?
+    """, (cnpj_contador, cnpj_empresa))
+    conn_relacionamentos.commit()
+
+def listar_todos_contadores_para_combo():
+    """
+    Lista todos os contadores para usar em comboboxes
+    Retorna uma lista de strings no formato "CNPJ - Nome"
+    """
+    lista = []
+    
+    # Buscar da tabela contadores_novo
+    try:
+        cursor_contadores_novo.execute("SELECT cnpj, nome FROM contadores_novo ORDER BY nome")
+        contadores_novo = cursor_contadores_novo.fetchall()
+        for contador in contadores_novo:
+            lista.append(f"{contador[0]} - {contador[1]}")
+    except Exception as e:
+        print(f"Erro ao buscar contadores_novo: {e}")
+    
+    # Buscar da tabela contadores original
+    try:
+        cursor.execute("SELECT cnpj, razao_social FROM contadores ORDER BY razao_social")
+        contadores_original = cursor.fetchall()
+        for contador in contadores_original:
+            lista.append(f"{contador[0]} - {contador[1]}")
+    except Exception as e:
+        print(f"Erro ao buscar contadores: {e}")
+    
+    return lista
+
+def listar_todas_empresas_para_combo():
+    """
+    Lista todas as empresas para usar em comboboxes
+    Retorna uma lista de strings no formato "CNPJ - Razão Social"
+    """
+    lista = []
+    try:
+        cursor_empresas.execute("SELECT cnpj, razao_social FROM empresas ORDER BY razao_social")
+        empresas = cursor_empresas.fetchall()
+        for empresa in empresas:
+            lista.append(f"{empresa[0]} - {empresa[1]}")
+    except Exception as e:
+        print(f"Erro ao buscar empresas: {e}")
+    
     return lista
 
 # Funções de exportação
