@@ -591,30 +591,35 @@ def contador():
     
     def pesquisar_contador():
         termo = e_pesquisa_cont.get()
-        contador_info, empresas_associadas = buscar_contador_por_cnpj_ou_nome_com_empresas(termo)
-        if contador_info:
-            e_cnpj.delete(0, END)
-            e_cnpj.insert(0, contador_info[0])
-            e_nome.delete(0, END)
-            e_nome.insert(0, contador_info[1])
-            e_municipio.delete(0, END)
-            e_municipio.insert(0, contador_info[2])
-            e_socio.delete(0, END)
-            e_socio.insert(0, contador_info[3])
-            e_contato.delete(0, END)
-            e_contato.insert(0, contador_info[4])
-            combo_tipo_pessoa.set(contador_info[5] if contador_info[5] else "")
-            e_empresas_representadas.delete(0, END)
-            e_empresas_representadas.insert(0, contador_info[6] if contador_info[6] else "")
-            e_empresa_associada_1.delete(0, END)
-            e_empresa_associada_1.insert(0, contador_info[7] if contador_info[7] else "")
-            e_empresa_associada_2.delete(0, END)
-            e_empresa_associada_2.insert(0, contador_info[8] if contador_info[8] else "")
-            e_empresa_associada_3.delete(0, END)
-            e_empresa_associada_3.insert(0, contador_info[9] if contador_info[9] else "")
-            messagebox.showinfo("Sucesso", "Dados encontrados!")
+        if termo:
+            resultado = buscar_contador_por_cnpj_ou_nome(termo)
+            if resultado:
+                e_cnpj.delete(0, END)
+                e_cnpj.insert(0, resultado[0])
+                e_nome.delete(0, END)
+                e_nome.insert(0, resultado[1])
+                e_municipio.delete(0, END)
+                e_municipio.insert(0, resultado[2])
+                e_socio.delete(0, END)
+                e_socio.insert(0, resultado[3])
+                e_contato.delete(0, END)
+                e_contato.insert(0, resultado[4])
+                combo_tipo_pessoa.set(resultado[5] if resultado[5] else "")
+                e_empresas_representadas.delete(0, END)
+                e_empresas_representadas.insert(0, resultado[6] if resultado[6] else "")
+                e_empresa_associada_1.delete(0, END)
+                e_empresa_associada_1.insert(0, resultado[7] if resultado[7] else "")
+                e_empresa_associada_2.delete(0, END)
+                e_empresa_associada_2.insert(0, resultado[8] if resultado[8] else "")
+                e_empresa_associada_3.delete(0, END)
+                e_empresa_associada_3.insert(0, resultado[9] if resultado[9] else "")
+                e_email.delete(0, END)
+                e_email.insert(0, resultado[10] if resultado[10] else "")
+                messagebox.showinfo('Sucesso', 'Dados encontrados!')
+            else:
+                messagebox.showwarning('Aviso', 'Registro nao encontrado!')
         else:
-            messagebox.showwarning("Aviso", "Contador não encontrado!")
+            messagebox.showerror('Erro', 'Digite um CNPJ ou nome para pesquisar')
 
     search_btn = criar_botao_moderno(search_inner, 'Pesquisar', pesquisar_contador, co9)
     search_btn.grid(row=0, column=2, padx=10)
@@ -957,7 +962,7 @@ def preenchimento_pdf():
         
         # Buscar na tabela de empresas por CNPJ ou nome
         resultado = buscar_empresa_por_cnpj_ou_nome(termo)
-        if contador_info:
+        if resultado:
             combo_cnpj_empresa.set(f"{resultado[0]} - {resultado[1]}")  # Definir o CNPJ e nome encontrado no combo
             messagebox.showinfo('Sucesso', f'Empresa encontrada: {resultado[1]}')
         else:
@@ -997,11 +1002,11 @@ def preenchimento_pdf():
             return
         
         # Buscar contador por CNPJ ou nome
-        contador_info, empresas_associadas = buscar_contador_por_cnpj_ou_nome_com_empresas(termo)
-        if contador_info:
-            combo_contador_empresas.set(f"{contador_info[0]} - {contador_info[1]}")  # Definir o CNPJ e nome encontrado no combo
-            carregar_empresas_contador(empresas_associadas)  # Carregar empresas automaticamente
-            messagebox.showinfo("Sucesso", f"Contador encontrado: {contador_info[1]}")
+        resultado = buscar_contador_por_cnpj_ou_nome(termo)
+        if resultado:
+            combo_contador_empresas.set(f"{resultado[0]} - {resultado[1]}")  # Definir o CNPJ e nome encontrado no combo
+            carregar_empresas_contador()  # Carregar empresas automaticamente
+            messagebox.showinfo('Sucesso', f'Contador encontrado: {resultado[1]}')
         else:
             messagebox.showwarning('Aviso', 'Contador não encontrado!')
     
@@ -1025,7 +1030,7 @@ def preenchimento_pdf():
     empresas_vars = {}
     empresas_checkboxes = {}
     
-    def carregar_empresas_contador(empresas_pre_carregadas=None):
+    def carregar_empresas_contador():
         # Limpar empresas anteriores
         for widget in empresas_inner.winfo_children():
             widget.destroy()
@@ -1038,18 +1043,19 @@ def preenchimento_pdf():
                   font=('Segoe UI', 10), bg=co1, fg=co0).pack(pady=10)
             return
         
-        if empresas_pre_carregadas is not None:
-            empresas = empresas_pre_carregadas
-        else:
-            # Extrair CNPJ do formato "CNPJ - Nome"
-            cnpj_contador = contador_selecionado.split(" - ")[0] if " - " in contador_selecionado else contador_selecionado
-            # Buscar empresas vinculadas ao contador
+        # Extrair CNPJ do formato "CNPJ - Nome"
+        cnpj_contador = contador_selecionado.split(' - ')[0] if ' - ' in contador_selecionado else contador_selecionado
+        
+        # Buscar empresas vinculadas ao contador
+        try:
             empresas = buscar_empresas_por_contador(cnpj_contador)
             
             if not empresas:
                 Label(empresas_inner, text="Nenhuma empresa vinculada a este contador", 
                       font=('Segoe UI', 10), bg=co1, fg=co0).pack(pady=10)
                 return
+            
+            # Botões para selecionar/desselecionar todas
             botoes_frame = Frame(empresas_inner, bg=co1)
             botoes_frame.pack(fill=X, pady=5)
             
@@ -1069,28 +1075,29 @@ def preenchimento_pdf():
             
             # Lista de empresas com checkboxes
             Label(empresas_inner, text=f"Empresas encontradas ({len(empresas)}):", 
-                  font=("Segoe UI", 10, "bold"), bg=co1, fg=co0).pack(anchor=W, pady=(10,5))
+                  font=('Segoe UI', 10, 'bold'), bg=co1, fg=co0).pack(anchor=W, pady=(10,5))
             
-            try:
-                for i, empresa in enumerate(empresas):
-                    empresa_frame = Frame(empresas_inner, bg=co5, relief="solid", bd=1)
-                    empresa_frame.pack(fill=X, pady=2, padx=5)
-                    
-                    # Checkbox
-                    var = BooleanVar()
-                    empresas_vars[empresa[0]] = var  # CNPJ como chave
-                    
-                    checkbox = Checkbutton(empresa_frame, variable=var, bg=co5, font=("Segoe UI", 9))
-                    checkbox.pack(side=LEFT, padx=5, pady=5)
-                    empresas_checkboxes[empresa[0]] = checkbox
-                    
-                    # Informações da empresa
-                    info_text = f"CNPJ: {empresa[0]} | Razão Social: {empresa[1] or 'N/A'} | Município: {empresa[9] or 'N/A'}"
-                    Label(empresa_frame, text=info_text, font=("Segoe UI", 9), bg=co5, fg=co0).pack(side=LEFT, padx=5, pady=5)
-            except Exception as e:
-                messagebox.showerror("Erro", f"Erro ao buscar empresas: {str(e)}")
-                Label(empresas_inner, text="Erro ao carregar empresas", 
-                      font=("Segoe UI", 10), bg=co1, fg=co4).pack(pady=10)
+            for i, empresa in enumerate(empresas):
+                empresa_frame = Frame(empresas_inner, bg=co5, relief="solid", bd=1)
+                empresa_frame.pack(fill=X, pady=2, padx=5)
+                
+                # Checkbox
+                var = BooleanVar()
+                empresas_vars[empresa[0]] = var  # CNPJ como chave
+                
+                checkbox = Checkbutton(empresa_frame, variable=var, bg=co5, font=('Segoe UI', 9))
+                checkbox.pack(side=LEFT, padx=5, pady=5)
+                empresas_checkboxes[empresa[0]] = checkbox
+                
+                # Informações da empresa
+                info_text = f"CNPJ: {empresa[0]} | Razão Social: {empresa[1] or 'N/A'} | Município: {empresa[9] or 'N/A'}"
+                Label(empresa_frame, text=info_text, font=('Segoe UI', 9), bg=co5, fg=co0).pack(side=LEFT, padx=5, pady=5)
+            
+        except Exception as e:
+            messagebox.showerror('Erro', f'Erro ao buscar empresas: {str(e)}')
+            Label(empresas_inner, text="Erro ao carregar empresas", 
+                  font=('Segoe UI', 10), bg=co1, fg=co4).pack(pady=10)
+    
     # Frame de preview e ações
     preview_frame = LabelFrame(scrollable_frame, text="Preview e Ações", 
                               font=('Segoe UI', 12, 'bold'), bg=co1, fg=co0,
@@ -1262,11 +1269,12 @@ Socio da empresa 3: {dados_contador[10] or 'N/A'}
                 from pdf_filler import processar_preenchimento_pdf_novo
                 arquivo_gerado = processar_preenchimento_pdf_novo(dados_repis, dados_contador)
                 if arquivo_gerado:
-                    messagebox.showinfo("Sucesso", f"PDF gerado com sucesso: {arquivo_gerado}")
+                    messagebox.showinfo('Sucesso', f'PDF gerado com sucesso: {arquivo_gerado}')
             except Exception as e:
-                messagebox.showerror("Erro", f"Erro ao gerar PDF: {str(e)}")
-            else:
-                messagebox.showerror("Erro", "Dados não encontrados para o CNPJ selecionado")
+                messagebox.showerror('Erro', f'Erro ao gerar PDF: {str(e)}')
+        else:
+            messagebox.showerror('Erro', 'Dados não encontrados para o CNPJ selecionado')
+    
     def gerar_pdfs_empresas_selecionadas():
         """Gera PDFs para todas as empresas selecionadas do contador"""
         cnpj_contador = combo_contador_empresas.get().strip()
@@ -1373,6 +1381,7 @@ Socio da empresa 3: {dados_contador[10] or 'N/A'}
                         arquivos_gerados.append(arquivo_gerado)
                 else:
                     erros.append(f'Dados REPIS não encontrados para CNPJ: {cnpj_empresa}')
+                    
             except Exception as e:
                 erros.append(f'Erro ao gerar PDF para {cnpj_empresa}: {str(e)}')
         
@@ -1555,7 +1564,8 @@ def empresas():
         termo = e_pesquisa_emp.get()
         if termo:
             resultado = buscar_empresa_por_cnpj_ou_nome(termo)
-        if contador_info:# Preencher todos os campos
+            if resultado:
+                # Preencher todos os campos
                 e_cnpj.delete(0, END)
                 e_cnpj.insert(0, resultado[0])
                 e_razao_social.delete(0, END)
@@ -1820,7 +1830,8 @@ def empresas():
                 
                 # Buscar dados completos da empresa
                 resultado = buscar_empresa_por_cnpj(cnpj_selecionado)
-            if contador_info:    # Carregar dados nos campos do formulário
+                if resultado:
+                    # Carregar dados nos campos do formulário
                     e_cnpj.delete(0, END)
                     e_cnpj.insert(0, resultado[0])
                     e_razao_social.delete(0, END)
