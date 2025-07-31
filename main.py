@@ -187,35 +187,37 @@ def repis():
                 e_endereco.delete(0, END)
                 e_endereco.insert(0, resultado[3] if resultado[3] else "")
                 e_complemento.delete(0, END)
-                e_complemento.insert(0, resultado[4] if resultado[4] else "")
+                e_complemento.insert(0, resultado[14] if resultado[14] else "")
                 e_cep.delete(0, END)
-                e_cep.insert(0, resultado[5] if resultado[5] else "")
+                e_cep.insert(0, resultado[15] if resultado[15] else "")
                 e_email.delete(0, END)
                 e_email.insert(0, resultado[6] if resultado[6] else "")
                 e_bairro.delete(0, END)
-                e_bairro.insert(0, resultado[7] if resultado[7] else "")
-                combo_uf.set(resultado[8] if resultado[8] else "")
+                e_bairro.insert(0, resultado[5] if resultado[5] else "")
+
+                combo_uf.set(resultado[16] if resultado[16] else "")
+                
                 e_municipio.delete(0, END)
-                e_municipio.insert(0, resultado[9] if resultado[9] else "")
+                e_municipio.insert(0, resultado[4] if resultado[4] else "")
                 e_data_abertura.delete(0, END)
-                e_data_abertura.insert(0, resultado[10] if resultado[10] else "")
+                e_data_abertura.insert(0, resultado[17] if resultado[17] else "")
                 e_nome_solicitante.delete(0, END)
-                e_nome_solicitante.insert(0, resultado[11] if resultado[11] else "")
-                combo_solicitante_tipo.set(resultado[12] if resultado[12] else "")
+                e_nome_solicitante.insert(0, resultado[13] if resultado[13] else "")
+                combo_solicitante_tipo.set(resultado[19] if resultado[19] else "")
                 e_telefone.delete(0, END)
-                e_telefone.insert(0, resultado[13] if resultado[13] else "")
+                e_telefone.insert(0, resultado[7] if resultado[7] else "")
                 e_email_solicitante.delete(0, END)
-                e_email_solicitante.insert(0, resultado[14] if resultado[14] else "")
+                e_email_solicitante.insert(0, resultado[17] if resultado[17] else "")
                 e_cpf.delete(0, END)
-                e_cpf.insert(0, resultado[15] if resultado[15] else "")
+                e_cpf.insert(0, resultado[17] if resultado[17] else "")
                 e_rg.delete(0, END)
-                e_rg.insert(0, resultado[16] if resultado[16] else "")
+                e_rg.insert(0, resultado[17] if resultado[17] else "")
                 e_contador.delete(0, END)
-                e_contador.insert(0, resultado[17] if resultado[17] else "")
+                e_contador.insert(0, resultado[9] if resultado[9] else "")
                 e_telefone_contador.delete(0, END)
-                e_telefone_contador.insert(0, resultado[18] if resultado[18] else "")
+                e_telefone_contador.insert(0, resultado[17] if resultado[17] else "")
                 e_email_contador.delete(0, END)
-                e_email_contador.insert(0, resultado[19] if resultado[19] else "")
+                e_email_contador.insert(0, resultado[17] if resultado[17] else "")
                 messagebox.showinfo('Sucesso', 'Dados encontrados!')
             else:
                 messagebox.showwarning('Aviso', 'Registro não encontrado!')
@@ -1193,6 +1195,10 @@ Socio da empresa 3: {dados_contador[10] or 'N/A'}
         # Buscar dados
         dados_repis_raw = buscar_repis_por_cnpj(cnpj_empresa)
         dados_contador_raw = None
+
+        if dados_repis_raw and dados_repis_raw[17]: # Verifica se o campo contador (índice 17) não está vazio
+            # Se o REPIS tem um contador associado, busca os dados desse contador
+            dados_contador_raw = buscar_contador_por_cnpj_ou_nome(dados_repis_raw[17])
         
         
         if not dados_repis_raw:
@@ -1277,7 +1283,8 @@ Socio da empresa 3: {dados_contador[10] or 'N/A'}
     
     def gerar_pdfs_empresas_selecionadas():
         """Gera PDFs para todas as empresas selecionadas do contador"""
-        cnpj_contador = combo_contador_empresas.get().strip()
+        cnpj_contador_completo = combo_contador_empresas.get().strip()
+        cnpj_contador = cnpj_contador_completo.split(' - ')[0] if ' - ' in cnpj_contador_completo else cnpj_contador_completo
         
         if not cnpj_contador:
             messagebox.showerror('Erro', 'Selecione um contador primeiro')
@@ -1604,8 +1611,10 @@ def empresas():
                 
                 # Buscar contador associado à empresa
                 contadores_associados = buscar_contadores_por_empresa(resultado[0])
-                if contadores_associados:
-                    contador_info = f"{contadores_associados[0][0]} - {contadores_associados[0][1]}"
+
+                if contadores_associados and len(contadores_associados[0]) >= 2:
+                    contador_id, contador_nome = contadores_associados[0]
+                    contador_info = f"{contador_id} - {contador_nome}"
                     combo_contador.set(contador_info)
                 else:
                     combo_contador.set("")
@@ -1676,8 +1685,9 @@ def empresas():
     e_bairro = Entry(form_inner, width=30, font=('Segoe UI', 10), relief='solid', bd=2)
     e_bairro.grid(row=row, column=1, sticky=EW, padx=10, pady=5)
 
+    from tkinter import ttk  # só pra garantir que você importou corretamente
     Label(form_inner, text="UF", font=('Segoe UI', 10, 'bold'), bg=co1, fg=co0).grid(row=row, column=2, sticky=W, pady=5)
-    combo_uf = ttk.Combobox(form_inner, width=15, values=["AC", "AL", "AP", "AM", "BA", "CE", "DF", "ES", "GO", "MA", "MT", "MS", "MG", "PA", "PB", "PR", "PE", "PI", "RJ", "RN", "RS", "RO", "RR", "SC", "SP", "SE", "TO"], font=('Segoe UI', 10))
+    combo_uf = ttk.Combobox(form_inner, width=15, values=("AC", "AL", "AP", "AM", "BA", "CE", "DF", "ES", "GO", "MA", "MT", "MS", "MG", "PA", "PB", "PR", "PE", "PI", "RJ", "RN", "RS", "RO", "RR", "SC", "SP", "SE", "TO"), font=('Segoe UI', 10))
     combo_uf.grid(row=row, column=3, sticky=W, padx=10, pady=5)
     row += 1
 

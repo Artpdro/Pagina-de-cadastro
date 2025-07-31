@@ -713,22 +713,21 @@ def exportar_para_excel(tabela):
 # Funções para interligação de tabelas
 
 def associar_contador_empresa(cnpj_contador, cnpj_empresa, tipo_relacao='representacao'):
-    """Associa um contador a uma empresa"""
     try:
         conn_rel = sqlite3.connect('relacionamentos.db')
         cursor_rel = conn_rel.cursor()
-        
-        cursor_rel.execute("""
-        INSERT OR REPLACE INTO contador_empresa 
-        (cnpj_contador, cnpj_empresa, tipo_relacao, ativo)
-        VALUES (?, ?, ?, 1)
-        """, (cnpj_contador, cnpj_empresa, tipo_relacao))
-        
+        cursor_rel.execute(
+            """
+            INSERT OR REPLACE INTO contador_empresa 
+              (cnpj_contador, cnpj_empresa, tipo_relacao, ativo)
+            VALUES (?, ?, ?, 1)
+            """, (cnpj_contador, cnpj_empresa, tipo_relacao)
+        )
         conn_rel.commit()
         conn_rel.close()
         return True
     except Exception as e:
-        print(f"Erro ao associar contador-empresa: {e}")
+        messagebox.showerror("Erro", f"Falha ao associar contador/empresa: {e}")
         return False
 
 def desassociar_contador_empresa(cnpj_contador, cnpj_empresa):

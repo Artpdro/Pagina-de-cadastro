@@ -15,6 +15,8 @@ pyinstaller --onefile --windowed ^
   --add-data "relacionamentos.db;." ^
   --add-data "repis.db;." ^
   --add-data "pdf_mapping.py;." ^
+  --add-data "pdf_filler.py;." ^
+  --add-data "REPIS - 2025-2026.pdf;." ^
   main.py
 
 echo.
