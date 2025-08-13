@@ -260,12 +260,71 @@ def criar_repis(dados):
     )
     conn_repis.commit()
 
+def normalizar_texto(texto):
+    """
+    Normaliza texto removendo acentos e convertendo para minúsculo
+    """
+    import unicodedata
+    if not texto:
+        return ""
+    # Remove acentos
+    texto_normalizado = unicodedata.normalize('NFD', texto)
+    texto_sem_acentos = ''.join(c for c in texto_normalizado if unicodedata.category(c) != 'Mn')
+    return texto_sem_acentos.lower()
+
 def buscar_repis_por_cnpj_ou_nome(termo):
     """
-    Busca REPIS por CNPJ ou Razão Social (busca parcial no nome)
+    Busca REPIS por CNPJ ou Razão Social (busca parcial no nome) - retorna primeiro resultado
+    Busca case-insensitive e ignora acentos
     """
-    cursor_repis.execute("SELECT * FROM repis WHERE LOWER(cnpj) = LOWER(?) OR LOWER(razao_social) LIKE LOWER(?) OR LOWER(nome_fantasia) LIKE LOWER(?)", (termo, f'%{termo}%', f'%{termo}%'))
-    return cursor_repis.fetchone()
+    # Primeiro tenta busca exata por CNPJ
+    cursor_repis.execute("SELECT * FROM repis WHERE cnpj = ?", (termo,))
+    resultado = cursor_repis.fetchone()
+    if resultado:
+        return resultado
+    
+    # Se não encontrou por CNPJ, busca por nome (case-insensitive com acentos)
+    cursor_repis.execute("SELECT * FROM repis")
+    todos_registros = cursor_repis.fetchall()
+    
+    termo_normalizado = normalizar_texto(termo)
+    
+    for registro in todos_registros:
+        cnpj = registro[0] if registro[0] else ""
+        razao_social = registro[1] if registro[1] else ""
+        nome_fantasia = registro[2] if registro[2] else ""
+        
+        # Verifica se o termo está no CNPJ, razão social ou nome fantasia
+        if (termo_normalizado in normalizar_texto(cnpj) or 
+            termo_normalizado in normalizar_texto(razao_social) or 
+            termo_normalizado in normalizar_texto(nome_fantasia)):
+            return registro
+    
+    return None
+
+def buscar_repis_multiplos(termo):
+    """
+    Busca REPIS por CNPJ ou Razão Social (busca parcial no nome) - retorna todos os resultados
+    Busca case-insensitive e ignora acentos
+    """
+    cursor_repis.execute("SELECT * FROM repis")
+    todos_registros = cursor_repis.fetchall()
+    
+    termo_normalizado = normalizar_texto(termo)
+    resultados = []
+    
+    for registro in todos_registros:
+        cnpj = registro[0] if registro[0] else ""
+        razao_social = registro[1] if registro[1] else ""
+        nome_fantasia = registro[2] if registro[2] else ""
+        
+        # Verifica se o termo está no CNPJ, razão social ou nome fantasia
+        if (termo_normalizado in normalizar_texto(cnpj) or 
+            termo_normalizado in normalizar_texto(razao_social) or 
+            termo_normalizado in normalizar_texto(nome_fantasia)):
+            resultados.append(registro)
+    
+    return resultados
 
 def buscar_repis_por_cnpj(cnpj):
     cursor_repis.execute("SELECT * FROM repis WHERE cnpj = ?", (cnpj,))
