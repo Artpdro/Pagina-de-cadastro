@@ -106,14 +106,18 @@ def preencher_pdf_repis_alinhado(dados_repis, dados_contador=None, arquivo_saida
         output.add_page(page)
         
         if not arquivo_saida:
-            cnpj_limpo = dados_repis.get("cnpj", "sem_cnpj").replace("/", "_").replace(".", "_").replace("-", "_")
-            timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
-            arquivo_saida = f"REPIS {cnpj_limpo}_{timestamp}.pdf"
+            razao_social = dados_repis.get("razao_social", "sem_razao_social").replace("/", "_").replace(".", "_").replace("-", "_").replace(" ", "_")
+            arquivo_saida = f"REPIS_{razao_social}.pdf"
         
-        with open(arquivo_saida, "wb") as outputStream:
+        # Caminho para a área de trabalho do Windows. ATENÇÃO: Você deve ter certeza que este caminho existe no seu sistema Windows.
+        desktop_path = r"C:\Users\sindn\OneDrive\Desktop\Repis preenchidos"
+        os.makedirs(desktop_path, exist_ok=True)
+        final_path = os.path.join(desktop_path, arquivo_saida)
+
+        with open(final_path, "wb") as outputStream:
             output.write(outputStream)
         
-        return arquivo_saida
+        return final_path
         
     except Exception as e:
         raise Exception(f"Erro ao preencher PDF: {str(e)}")
@@ -122,10 +126,15 @@ def criar_pdf_completo_repis(dados_repis, dados_contador=None):
     # Esta função permanece como fallback, caso o preenchimento alinhado falhe
     # Não é o foco principal da correção atual, mas é mantida para robustez
     try:
-        cnpj_limpo = dados_repis.get("cnpj", "sem_cnpj").replace("/", "_").replace(".", "_").replace("-", "_")
-        arquivo_saida = f"REPIS_{cnpj_limpo}.pdf"
+        razao_social = dados_repis.get("razao_social", "sem_razao_social").replace("/", "_").replace(".", "_").replace("-", "_").replace(" ", "_")
+        arquivo_saida = f"REPIS_{razao_social}.pdf"
         
-        can = canvas.Canvas(arquivo_saida, pagesize=letter)
+        # Caminho para a área de trabalho do Windows. ATENÇÃO: Você deve ter certeza que este caminho existe no seu sistema Windows.
+        desktop_path = r"C:\Users\sindn\OneDrive\Desktop\Repis preenchidos"
+        os.makedirs(desktop_path, exist_ok=True)
+        final_path = os.path.join(desktop_path, arquivo_saida)
+
+        can = canvas.Canvas(final_path, pagesize=letter)
         width, height = letter
         
         # ... (código existente para criar PDF completo)
@@ -133,7 +142,7 @@ def criar_pdf_completo_repis(dados_repis, dados_contador=None):
         can.setFont("Helvetica-Bold", 14)
         can.drawString(50, height - 50, "SOLICITAÇÃO DE ADESÃO AO REPIS: 2025/2026")
         can.save()
-        return arquivo_saida
+        return final_path
         
     except Exception as e:
         raise Exception(f"Erro ao criar PDF completo: {str(e)}")
@@ -152,3 +161,5 @@ def processar_preenchimento_pdf_novo(dados_repis, dados_contador=None):
         except Exception as e2:
             messagebox.showerror("Erro", f"Erro ao gerar PDF: {str(e2)}")
             return None
+
+
