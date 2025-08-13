@@ -422,6 +422,57 @@ def repis():
         # Configurar tags para cores alternadas
         tree_dados_repis.tag_configure('evenrow', background=co5)
         tree_dados_repis.tag_configure('oddrow', background=co1)
+        
+        # NOVA FUNCIONALIDADE: Adicionar evento de clique na tabela para preencher campos
+        def on_item_click(event):
+            try:
+                selected_item = tree_dados_repis.selection()[0]
+                cnpj_selecionado = tree_dados_repis.item(selected_item, 'values')[0]
+                
+                # Buscar dados completos do REPIS pelo CNPJ
+                resultado = buscar_repis_por_cnpj(cnpj_selecionado)
+                
+                if resultado:
+                    # Limpar todos os campos primeiro
+                    for entry in [e_cnpj, e_razao_social, e_nome_fantasia, e_endereco, e_complemento, 
+                                 e_cep, e_email, e_bairro, e_municipio, e_data_abertura, 
+                                 e_nome_solicitante, e_telefone, e_email_solicitante, e_cpf, 
+                                 e_rg, e_contador, e_telefone_contador, e_email_contador]:
+                        entry.delete(0, END)
+                    
+                    # Preencher todos os campos com os dados encontrados
+                    e_cnpj.insert(0, resultado[0] if resultado[0] else "")
+                    e_razao_social.insert(0, resultado[1] if resultado[1] else "")
+                    e_nome_fantasia.insert(0, resultado[2] if resultado[2] else "")
+                    e_endereco.insert(0, resultado[3] if resultado[3] else "")
+                    e_complemento.insert(0, resultado[4] if resultado[4] else "")
+                    e_cep.insert(0, resultado[5] if resultado[5] else "")
+                    e_email.insert(0, resultado[6] if resultado[6] else "")
+                    e_bairro.insert(0, resultado[7] if resultado[7] else "")
+                    combo_uf.set(resultado[8] if resultado[8] else "")
+                    e_municipio.insert(0, resultado[9] if resultado[9] else "")
+                    e_data_abertura.insert(0, resultado[10] if resultado[10] else "")
+                    e_nome_solicitante.insert(0, resultado[11] if resultado[11] else "")
+                    combo_solicitante_tipo.set(resultado[12] if resultado[12] else "")
+                    e_telefone.insert(0, resultado[13] if resultado[13] else "")
+                    e_email_solicitante.insert(0, resultado[14] if resultado[14] else "")
+                    e_cpf.insert(0, resultado[15] if resultado[15] else "")
+                    e_rg.insert(0, resultado[16] if resultado[16] else "")
+                    e_contador.insert(0, resultado[17] if resultado[17] else "")
+                    e_telefone_contador.insert(0, resultado[18] if resultado[18] else "")
+                    e_email_contador.insert(0, resultado[19] if resultado[19] else "")
+                    
+                    # Mostrar mensagem de sucesso
+                    messagebox.showinfo('Sucesso', f'Dados carregados para: {resultado[1]}')
+                    
+            except IndexError:
+                # Nenhum item selecionado
+                pass
+            except Exception as e:
+                messagebox.showerror('Erro', f'Erro ao carregar dados: {str(e)}')
+        
+        # Vincular evento de clique simples na tabela
+        tree_dados_repis.bind('<Button-1>', on_item_click)
 
     # Funcao novo cadastro REPIS
     def novo_cadastro_repis():
@@ -1752,7 +1803,7 @@ def empresas():
     e_email_responsavel.grid(row=row, column=1, sticky=EW, padx=10, pady=5)
 
     Label(form_inner, text="Situação com Sindicato", font=('Segoe UI', 10, 'bold'), bg=co1, fg=co0).grid(row=row, column=2, sticky=W, pady=5)
-    combo_situacao_sindicato = ttk.Combobox(form_inner, width=20, values=["em dia", "em débito", "aguardando pagamento", "outra"], font=('Segoe UI', 10))
+    combo_situacao_sindicato = ttk.Combobox(form_inner, width=20, values=["--" , "Em dia", "Em débito", "Aguardando pagamento", "Outra"], font=('Segoe UI', 10))
     combo_situacao_sindicato.grid(row=row, column=3, sticky=W, padx=10, pady=5)
     row += 1
 

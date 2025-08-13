@@ -108,7 +108,7 @@ def preencher_pdf_repis_alinhado(dados_repis, dados_contador=None, arquivo_saida
         if not arquivo_saida:
             cnpj_limpo = dados_repis.get("cnpj", "sem_cnpj").replace("/", "_").replace(".", "_").replace("-", "_")
             timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
-            arquivo_saida = f"REPIS_preenchido_{cnpj_limpo}_{timestamp}.pdf"
+            arquivo_saida = f"REPIS {cnpj_limpo}_{timestamp}.pdf"
         
         with open(arquivo_saida, "wb") as outputStream:
             output.write(outputStream)
@@ -123,7 +123,7 @@ def criar_pdf_completo_repis(dados_repis, dados_contador=None):
     # Não é o foco principal da correção atual, mas é mantida para robustez
     try:
         cnpj_limpo = dados_repis.get("cnpj", "sem_cnpj").replace("/", "_").replace(".", "_").replace("-", "_")
-        arquivo_saida = f"REPIS_formulario_completo_{cnpj_limpo}.pdf"
+        arquivo_saida = f"REPIS_{cnpj_limpo}.pdf"
         
         can = canvas.Canvas(arquivo_saida, pagesize=letter)
         width, height = letter
