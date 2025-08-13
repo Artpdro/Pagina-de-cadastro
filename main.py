@@ -173,7 +173,7 @@ def repis():
     e_pesquisa.grid(row=0, column=1, padx=10, pady=5)
     
     def pesquisar_cnpj():
-        termo = e_pesquisa.get()
+        termo = e_pesquisa.get().lower()
         if termo:
             resultado = buscar_repis_por_cnpj_ou_nome(termo)
             if resultado:

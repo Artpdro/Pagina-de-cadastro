@@ -264,7 +264,7 @@ def buscar_repis_por_cnpj_ou_nome(termo):
     """
     Busca REPIS por CNPJ ou Razão Social (busca parcial no nome)
     """
-    cursor_repis.execute("SELECT * FROM repis WHERE cnpj = ? OR razao_social LIKE ?", (termo, f'%{termo}%'))
+    cursor_repis.execute("SELECT * FROM repis WHERE LOWER(cnpj) = LOWER(?) OR LOWER(razao_social) LIKE LOWER(?) OR LOWER(nome_fantasia) LIKE LOWER(?)", (termo, f'%{termo}%', f'%{termo}%'))
     return cursor_repis.fetchone()
 
 def buscar_repis_por_cnpj(cnpj):
@@ -319,7 +319,7 @@ def buscar_contador_por_cnpj_ou_nome(termo):
     Busca contador por CNPJ ou Nome (busca parcial no nome)
     """
     # Primeiro tenta buscar na tabela contadores_novo
-    cursor_contadores_novo.execute("SELECT * FROM contadores_novo WHERE cnpj = ? OR nome LIKE ?", (termo, f'%{termo}%'))
+    cursor_contadores_novo.execute("SELECT * FROM contadores_novo WHERE cnpj = ? OR LOWER(nome) LIKE LOWER(?)", (termo, f'%{termo}%'))
     resultado = cursor_contadores_novo.fetchone()
     
     if resultado:
@@ -430,7 +430,7 @@ def buscar_empresa_por_cnpj_ou_nome(termo):
     """
     Busca empresa por CNPJ ou Razão Social (busca parcial no nome)
     """
-    cursor_empresas.execute("SELECT * FROM empresas WHERE cnpj = ? OR razao_social LIKE ?", (termo, f'%{termo}%'))
+    cursor_empresas.execute("SELECT * FROM empresas WHERE cnpj = ? OR LOWER(razao_social) LIKE LOWER(?) OR LOWER(nome_fantasia) LIKE LOWER(?)", (termo, f'%{termo}%', f'%{termo}%'))
     return cursor_empresas.fetchone()
 
 def buscar_empresa_por_cnpj(cnpj):
