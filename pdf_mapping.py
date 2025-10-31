@@ -1,25 +1,25 @@
 # Coordenadas corrigidas baseadas na análise visual dos PDFs
 pdf_fields = {
     # Primeira linha - Razão Social e CNPJ
-    'razao_social': {'x': 70, 'y': 670, 'width': 400, 'height': 15},
-    'cnpj': {'x': 350, 'y': 670, 'width': 150, 'height': 15},
+    'razao_social': {'x': 70, 'y': 665, 'width': 400, 'height': 15},
+    'cnpj': {'x': 350, 'y': 665, 'width': 150, 'height': 15},
     
     # Segunda linha - Nome Fantasia
-    'nome_fantasia': {'x': 70, 'y': 635, 'width': 680, 'height': 15},
+    'nome_fantasia': {'x': 70, 'y': 630, 'width': 680, 'height': 15},
     
     # Terceira linha - Endereço, Número e Complemento
-    'endereco': {'x': 70, 'y': 597, 'width': 400, 'height': 15},
-    'numero': {'x': 350, 'y': 597, 'width': 80, 'height': 15},
-    'complemento': {'x': 460, 'y': 597, 'width': 150, 'height': 15},
+    'endereco': {'x': 70, 'y': 593, 'width': 400, 'height': 15},
+    'numero': {'x': 350, 'y': 593, 'width': 80, 'height': 15},
+    'complemento': {'x': 460, 'y': 593, 'width': 150, 'height': 15},
     
     # Quarta linha - CEP e Email
-    'cep': {'x': 70, 'y': 563, 'width': 120, 'height': 15},
-    'email': {'x': 350, 'y': 563, 'width': 200, 'height': 15},
+    'cep': {'x': 70, 'y': 555, 'width': 120, 'height': 15},
+    'email': {'x': 350, 'y': 555, 'width': 200, 'height': 15},
     
     # Quinta linha - Bairro, UF e Município
-    'bairro': {'x': 70, 'y': 529, 'width': 350, 'height': 15},
-    'uf': {'x': 350, 'y': 529, 'width': 50, 'height': 15},
-    'municipio': {'x': 460, 'y': 529, 'width': 150, 'height': 15},
+    'bairro': {'x': 70, 'y': 520, 'width': 350, 'height': 15},
+    'uf': {'x': 350, 'y': 520, 'width': 50, 'height': 15},
+    'municipio': {'x': 460, 'y': 520, 'width': 150, 'height': 15},
     
     # Sexta linha - Data de abertura e Número de empregados
     'data_abertura': {'x': 70, 'y': 488, 'width': 120, 'height': 15},

@@ -28,7 +28,22 @@ janela = Tk()
 janela.title("Sindnorte - REPIS e Contadores")
 janela.geometry("1400x900")
 janela.configure(background=co5)
-janela.resizable(width=FALSE, height=FALSE)
+janela.resizable(width=TRUE, height=TRUE)
+
+def toggle_fullscreen(event=None):
+    # Obtém o estado atual de tela cheia e o inverte
+    is_fullscreen = janela.attributes('-fullscreen')
+    janela.attributes('-fullscreen', not is_fullscreen)
+
+def end_fullscreen(event=None):
+    # Sai do modo de tela cheia
+    janela.attributes('-fullscreen', False)
+
+# Vincular a tecla F11 para alternar entre tela cheia
+janela.bind('<F11>', toggle_fullscreen)
+
+# Vincular a tecla Esc para sair da tela cheia
+janela.bind('<Escape>', end_fullscreen)
 
 # Configuracao de estilo moderno
 style = Style(janela)
